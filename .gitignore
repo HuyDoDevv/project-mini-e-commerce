@@ -1,3 +1,5 @@
 temp.txt
 go.mod
 go.sum
+.env
+internal/logs
