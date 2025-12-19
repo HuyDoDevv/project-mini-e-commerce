@@ -20,11 +20,11 @@ type Application struct {
 }
 
 func NewApplication(config *config.Config) *Application {
-	r := gin.Default()
-
-	validation.InitValidator()
-
 	LoadEnv()
+	if err := validation.InitValidator(); err != nil {
+		log.Fatalf("Validation init faild %v", err)
+	}
+	r := gin.Default()
 
 	modules := []Modules{
 		NewUserModel(),

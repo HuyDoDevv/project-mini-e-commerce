@@ -11,10 +11,9 @@ import (
 )
 
 func RegisterCustomValidation(v *validator.Validate) {
-	var blockedDomains = map[string]bool{
-		"blacklist.com": true,
-		"edu.vn":        true,
-		"abc.com":       true,
+	var advancedDomains = map[string]bool{
+		"email.com": true,
+		"gmail.com": true,
 	}
 	v.RegisterValidation("email_advanced", func(fl validator.FieldLevel) bool {
 		email := fl.Field().String()
@@ -26,7 +25,7 @@ func RegisterCustomValidation(v *validator.Validate) {
 
 		domain := utils.NormalizeString(parts[1])
 
-		return !blockedDomains[domain]
+		return advancedDomains[domain]
 	})
 
 	v.RegisterValidation("password_strong", func(fl validator.FieldLevel) bool {
