@@ -1,9 +1,7 @@
 package repository
 
 import (
-	"fmt"
 	"project-mini-e-commerce/internal/models"
-	"slices"
 )
 
 type InmemoryUserRepository struct {
@@ -31,28 +29,17 @@ func (ur *InmemoryUserRepository) GetByUUID(uuid string) (models.User, bool) {
 	}
 	return models.User{}, false
 }
-func (ur *InmemoryUserRepository) Update(uuid string, updateUser models.User) error {
-	for i, user := range ur.users {
-		if user.Uuid == uuid {
-			ur.users[i] = updateUser
-		}
-	}
-	return nil
+func (ur *InmemoryUserRepository) Update() {
+
 }
-func (ur *InmemoryUserRepository) Delete(uuid string) error {
-	for i, user := range ur.users {
-		if user.Uuid == uuid {
-			ur.users = slices.Delete(ur.users, i, i+1)
-			return nil
-		}
-	}
-	return fmt.Errorf("user not found")
+func (ur *InmemoryUserRepository) Delete() {
+
 }
-func (ur *InmemoryUserRepository) FindUserByEmail(email string) (models.User, bool) {
+func (ur *InmemoryUserRepository) FindUserByEmail(email string) bool {
 	for _, user := range ur.users {
 		if user.Email == email {
-			return user, true
+			return true
 		}
 	}
-	return models.User{}, false
+	return false
 }
