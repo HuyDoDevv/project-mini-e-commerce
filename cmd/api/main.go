@@ -6,8 +6,8 @@ import (
 )
 
 func main() {
-	config := config.NewConfig()
-	application := app.NewApplication(config)
+	configFile := config.NewConfig()
+	application := app.NewApplication(configFile)
 
 	if err := application.Run(); err != nil {
 		panic(err)

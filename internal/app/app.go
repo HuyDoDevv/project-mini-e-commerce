@@ -7,10 +7,9 @@ import (
 	"project-mini-e-commerce/internal/validation"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
-type Modules interface {
+type Module interface {
 	Routes() routes.Route
 }
 
@@ -19,37 +18,37 @@ type Application struct {
 	router *gin.Engine
 }
 
-func NewApplication(config *config.Config) *Application {
-	LoadEnv()
+func NewApplication(cfg *config.Config) *Application {
 	if err := validation.InitValidator(); err != nil {
-		log.Fatalf("Validation init faild %v", err)
+		log.Fatalf("Failed to initialize validator: %v", err)
 	}
+
 	r := gin.Default()
 
-	modules := []Modules{
-		NewUserModel(),
-	}
-	routes.RegisterRoutes(r, getModuleRoutes(modules)...)
-
-	return &Application{
-		config: config,
+	app := &Application{
+		config: cfg,
 		router: r,
 	}
+
+	app.registerModules()
+
+	return app
 }
 
-func getModuleRoutes(modules []Modules) []routes.Route {
-	routesList := make([]routes.Route, len(modules))
-	for i, module := range modules {
-		routesList[i] = module.Routes()
+func (a *Application) registerModules() {
+	modules := []Module{
+		NewUserModel(),
 	}
-	return routesList
+
+	var moduleRoutes []routes.Route
+	for _, m := range modules {
+		moduleRoutes = append(moduleRoutes, m.Routes())
+	}
+
+	routes.RegisterRoutes(a.router, moduleRoutes...)
 }
 
 func (a *Application) Run() error {
+	log.Printf("Server is starting on %s", a.config.ServerAddress)
 	return a.router.Run(a.config.ServerAddress)
-}
-func LoadEnv() {
-	if err := godotenv.Load("../../.env"); err != nil {
-		log.Println("env not found")
-	}
 }
