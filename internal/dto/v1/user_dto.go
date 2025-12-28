@@ -8,23 +8,23 @@ type UserDTO struct {
 	Level  string `json:"level"`
 }
 
-func MapStatusUser(status int) string {
-	switch status {
-	case 1:
-		return "Show"
-	case 2:
-		return "Hide"
-	default:
-		return "None"
-	}
-}
-func MapLevelUser(status int) string {
-	switch status {
-	case 1:
-		return "Admin"
-	case 2:
-		return "Client"
-	default:
-		return "None"
-	}
-}
+//func MapStatusUser(status int) string {
+//	switch status {
+//	case 1:
+//		return "Show"
+//	case 2:
+//		return "Hide"
+//	default:
+//		return "None"
+//	}
+//}
+//func MapLevelUser(status int) string {
+//	switch status {
+//	case 1:
+//		return "Admin"
+//	case 2:
+//		return "Client"
+//	default:
+//		return "None"
+//	}
+//}

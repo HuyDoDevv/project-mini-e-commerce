@@ -41,18 +41,18 @@ func RateLimiter(ip string) *rate.Limiter {
 	return client.Limiter
 }
 
-func CleanupClient() {
-	for {
-		time.Sleep(time.Minute)
-		mu.Lock()
-		for ip, client := range clients {
-			if time.Since(client.LastSeen) > 3*time.Minute {
-				delete(clients, ip)
-			}
-		}
-		mu.Unlock()
-	}
-}
+//func CleanupClient() {
+//	for {
+//		time.Sleep(time.Minute)
+//		mu.Lock()
+//		for ip, client := range clients {
+//			if time.Since(client.LastSeen) > 3*time.Minute {
+//				delete(clients, ip)
+//			}
+//		}
+//		mu.Unlock()
+//	}
+//}
 
 func LimiterMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
