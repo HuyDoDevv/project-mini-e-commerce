@@ -2,7 +2,7 @@ package config
 
 import (
 	"log"
-	"os"
+	"project-mini-e-commerce/internal/utils"
 
 	"github.com/joho/godotenv"
 )
@@ -12,14 +12,10 @@ type Config struct {
 }
 
 func NewConfig() *Config {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("../../.env"); err != nil {
 		log.Println("No .env file found, using system environment variables")
 	}
-
-	serverAddress := os.Getenv("SERVER_ADDRESS")
-	if serverAddress == "" {
-		serverAddress = ":8080"
-	}
+	serverAddress := utils.GetEnv("SERVER_PORT", ":8080")
 
 	return &Config{
 		ServerAddress: serverAddress,

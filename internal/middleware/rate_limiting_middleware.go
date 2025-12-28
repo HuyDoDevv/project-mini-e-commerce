@@ -30,8 +30,8 @@ func getIpClient(ctx *gin.Context) string {
 func RateLimiter(ip string) *rate.Limiter {
 	mu.Lock()
 	defer mu.Unlock()
-	client, exitst := clients[ip]
-	if !exitst {
+	client, exits := clients[ip]
+	if !exits {
 		limiter := rate.NewLimiter(5, 15)
 		newClient := &Client{limiter, time.Now()}
 		clients[ip] = newClient

@@ -1,2 +1,2 @@
 server:
-	cd cmd/api go run .
+	cd cmd/api && go run .

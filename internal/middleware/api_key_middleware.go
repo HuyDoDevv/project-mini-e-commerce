@@ -2,16 +2,13 @@ package middleware
 
 import (
 	"net/http"
-	"os"
+	"project-mini-e-commerce/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 func ApiKeyMiddleware() gin.HandlerFunc {
-	expeckey := os.Getenv("API_KEY")
-	if expeckey == "" {
-		expeckey = "Ex Key"
-	}
+	expect := utils.GetEnv("API_KEY", "API_KEY")
 
 	return func(ctx *gin.Context) {
 		apiKey := ctx.GetHeader("X-API-KEY")
@@ -19,7 +16,7 @@ func ApiKeyMiddleware() gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, "Missing X API KEY")
 			return
 		}
-		if apiKey != expeckey {
+		if apiKey != expect {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, "Incorrect X API KEY")
 			return
 		}

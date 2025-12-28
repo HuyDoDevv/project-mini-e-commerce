@@ -1,6 +1,4 @@
-package dto
-
-import "project-mini-e-commerce/internal/models"
+package v1dto
 
 type UserDTO struct {
 	Uuid   string `json:"uuid"`
@@ -8,25 +6,6 @@ type UserDTO struct {
 	Age    int    `json:"age"`
 	Status string `json:"status"`
 	Level  string `json:"level"`
-}
-
-func MapUserDTO(user models.User) *UserDTO {
-	return &UserDTO{
-		Uuid:   user.Uuid,
-		Name:   user.Name,
-		Age:    user.Age,
-		Status: MapStatusUser(user.Status),
-		Level:  MapLevelUser(user.Level),
-	}
-}
-
-func MapUsersDTO(users []models.User) []UserDTO {
-	dtos := make([]UserDTO, 0, len(users))
-
-	for _, user := range users {
-		dtos = append(dtos, *MapUserDTO(user))
-	}
-	return dtos
 }
 
 func MapStatusUser(status int) string {

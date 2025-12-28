@@ -1,10 +1,11 @@
 package app
 
 import (
-	"project-mini-e-commerce/internal/handler"
+	v1handler "project-mini-e-commerce/internal/handler/v1"
 	"project-mini-e-commerce/internal/repository"
 	"project-mini-e-commerce/internal/routes"
-	"project-mini-e-commerce/internal/service"
+	v1routes "project-mini-e-commerce/internal/routes/v1"
+	v1service "project-mini-e-commerce/internal/service/v1"
 )
 
 type UserModel struct {
@@ -12,13 +13,13 @@ type UserModel struct {
 }
 
 func NewUserModel() *UserModel {
-	userRepo := repository.NewMemoryUserRepository()
+	userRepo := repository.NewQueryUserRepository()
 
-	userSer := service.NewUserService(userRepo)
+	userSer := v1service.NewUserService(userRepo)
 
-	userHand := handler.NewUserHandler(userSer)
+	userHand := v1handler.NewUserHandler(userSer)
 
-	userRoutes := routes.NewUserRoutes(userHand)
+	userRoutes := v1routes.NewUserRoutes(userHand)
 
 	return &UserModel{routes: userRoutes}
 }
