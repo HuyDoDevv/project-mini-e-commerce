@@ -1,7 +1,11 @@
 package v1handler
 
 import (
+	"fmt"
 	v1service "project-mini-e-commerce/internal/service/v1"
+	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
@@ -14,20 +18,18 @@ func NewUserHandler(service v1service.UserService) *UserHandler {
 	}
 }
 
-func (uh *UserHandler) GetAllUser() {
+func (uh *UserHandler) GetAllUser(ctx *gin.Context) {
+	fmt.Println("getAllUser start")
+	time.Sleep(10 * time.Second)
+	fmt.Println("getAllUser end")
+}
+func (uh *UserHandler) CreateUser(*gin.Context) {
 
 }
-
-func (uh *UserHandler) CreateUser() {
-
-}
-
-func (uh *UserHandler) GetByUserUUID() {
+func (uh *UserHandler) GetByUserUUID(*gin.Context) {}
+func (uh *UserHandler) UpdateUser(*gin.Context) {
 
 }
-func (uh *UserHandler) UpdateUser() {
-
-}
-func (uh *UserHandler) DeleteUser() {
+func (uh *UserHandler) DeleteUser(*gin.Context) {
 
 }
