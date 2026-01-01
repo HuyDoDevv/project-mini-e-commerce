@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/natefinch/lumberjack"
 	"github.com/rs/zerolog"
 )
 
@@ -24,17 +23,7 @@ func (w *CustomResponseWriter) Write(data []byte) (n int, err error) {
 	return w.ResponseWriter.Write(data)
 }
 
-func LoggerMiddleware() gin.HandlerFunc {
-	loggerPath := "../../internal/logs/http.log"
-	logger := zerolog.New(&lumberjack.Logger{
-		Filename:   loggerPath,
-		MaxSize:    1, // megabytes MB
-		MaxAge:     5, // 5 days
-		MaxBackups: 5,
-		Compress:   true, // cos nen la khong
-		LocalTime:  true, // gio vi tri hien tai
-	}).With().Timestamp().Logger()
-
+func LoggerMiddleware(httpLogger zerolog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		start := time.Now()
 		contentType := ctx.GetHeader("Content-Type")
@@ -69,7 +58,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 		} else {
 			bodyBytes, err := io.ReadAll(ctx.Request.Body)
 			if err != nil {
-				logger.Error().Err(err).Msg("Field to read request body")
+				httpLogger.Error().Err(err).Msg("Field to read request body")
 			}
 			ctx.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 			if strings.HasPrefix(contentType, "application/json") {
@@ -111,7 +100,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 			reponseBodyParse = responseBodyRaw
 		}
 
-		logEnvent := logger.Info()
+		logEnvent := httpLogger.Info()
 
 		logEnvent.
 			Str("method", ctx.Request.Method).

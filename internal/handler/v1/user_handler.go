@@ -3,7 +3,6 @@ package v1handler
 import (
 	"fmt"
 	v1service "project-mini-e-commerce/internal/service/v1"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,9 +18,8 @@ func NewUserHandler(service v1service.UserService) *UserHandler {
 }
 
 func (uh *UserHandler) GetAllUser(ctx *gin.Context) {
-	fmt.Println("getAllUser start")
-	time.Sleep(10 * time.Second)
-	fmt.Println("getAllUser end")
+	var a []int
+	fmt.Println(a[1])
 }
 func (uh *UserHandler) CreateUser(*gin.Context) {
 
