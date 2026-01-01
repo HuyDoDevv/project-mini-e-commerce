@@ -1,23 +1,37 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"project-mini-e-commerce/internal/utils"
-
-	"github.com/joho/godotenv"
 )
+
+type DatabaseConfig struct {
+	Host     string
+	Port     string
+	DBName   string
+	User     string
+	Password string
+	SSLMode  string
+}
 
 type Config struct {
 	ServerAddress string
+	DB            DatabaseConfig
 }
 
 func NewConfig() *Config {
-	if err := godotenv.Load("../../.env"); err != nil {
-		log.Println("No .env file found, using system environment variables")
-	}
-	serverAddress := utils.GetEnv("SERVER_PORT", ":8080")
-
 	return &Config{
-		ServerAddress: serverAddress,
+		ServerAddress: utils.GetEnv("SERVER_ADDRESS", ":8080"),
+		DB: DatabaseConfig{
+			Host:     utils.GetEnv("DB_HOST", "localhost"),
+			Port:     utils.GetEnv("DB_PORT", "5432"),
+			DBName:   utils.GetEnv("DB_NAME", "myapp"),
+			User:     utils.GetEnv("DB_USER", "postgres"),
+			Password: utils.GetEnv("DB_PASSWORD", "postgres"),
+			SSLMode:  utils.GetEnv("DB_SSLMODE", "disable"),
+		},
 	}
+}
+func (c *Config) DNS() string {
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", c.DB.Host, c.DB.Port, c.DB.User, c.DB.Password, c.DB.DBName, c.DB.SSLMode)
 }
