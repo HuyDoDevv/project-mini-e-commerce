@@ -15,14 +15,14 @@ type Route interface {
 }
 
 func RegisterRoutes(r *gin.Engine, routers ...Route) {
+	rateLimiterLogger := newLoggerWithPath("../../internal/logs/ratelimiter.log", "warning")
 	httpLogger := newLoggerWithPath("../../internal/logs/http.log", "info")
 	recoveryLogger := newLoggerWithPath("../../internal/logs/recovery.log", "warning")
-	ratelimiterLogger := newLoggerWithPath("../../internal/logs/ratelomiter.log", "warning")
 
 	r.Use(
-		middleware.LimiterMiddleware(*ratelimiterLogger),
-		middleware.LoggerMiddleware(*httpLogger),
-		middleware.RecoveryMiddleware(*recoveryLogger),
+		middleware.LimiterMiddleware(rateLimiterLogger),
+		middleware.LoggerMiddleware(httpLogger),
+		middleware.RecoveryMiddleware(recoveryLogger),
 		middleware.ApiKeyMiddleware(),
 	)
 
@@ -33,7 +33,7 @@ func RegisterRoutes(r *gin.Engine, routers ...Route) {
 	}
 }
 
-func newLoggerWithPath(level, path string) *zerolog.Logger {
+func newLoggerWithPath(path, level string) *zerolog.Logger {
 	config := logger.Config{
 		Level:       level,
 		Filename:    path,

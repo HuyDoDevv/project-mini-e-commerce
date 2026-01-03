@@ -23,7 +23,7 @@ func (w *CustomResponseWriter) Write(data []byte) (n int, err error) {
 	return w.ResponseWriter.Write(data)
 }
 
-func LoggerMiddleware(httpLogger zerolog.Logger) gin.HandlerFunc {
+func LoggerMiddleware(httpLogger *zerolog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		start := time.Now()
 		contentType := ctx.GetHeader("Content-Type")
@@ -82,7 +82,7 @@ func LoggerMiddleware(httpLogger zerolog.Logger) gin.HandlerFunc {
 		ctx.Writer = customWriter
 
 		ctx.Next()
-		duration_ms := time.Since(start)
+		duration := time.Since(start)
 
 		responseContenType := ctx.Writer.Header().Get("Content-Type")
 		responseBodyRaw := customWriter.body.String()
@@ -100,25 +100,25 @@ func LoggerMiddleware(httpLogger zerolog.Logger) gin.HandlerFunc {
 			reponseBodyParse = responseBodyRaw
 		}
 
-		logEnvent := httpLogger.Info()
+		logEvent := httpLogger.Info()
 
-		logEnvent.
+		logEvent.
 			Str("method", ctx.Request.Method).
 			Str("path", ctx.Request.URL.Path).
 			Str("query", ctx.Request.URL.RawQuery).
 			Str("client_ip", ctx.ClientIP()).
 			Str("user_agent", ctx.Request.UserAgent()).
-			Str("referel", ctx.Request.Referer()).
+			Str("refer", ctx.Request.Referer()).
 			Str("protocol", ctx.Request.Proto).
 			Str("host", ctx.Request.Host).
-			Str("remod_addr", ctx.Request.RemoteAddr).
+			Str("remote_addr", ctx.Request.RemoteAddr).
 			Str("request_uri", ctx.Request.RequestURI).
-			Int64("content_lengt", ctx.Request.ContentLength).
+			Int64("content_length", ctx.Request.ContentLength).
 			Interface("header", ctx.Request.Header).
 			Interface("request_body", requestBody).
 			Interface("response_body", reponseBodyParse).
 			Int("status_code", ctx.Writer.Status()).
-			Int64("duration_ms", duration_ms.Milliseconds()).
+			Int64("duration_ms", duration.Milliseconds()).
 			Msg("Logger https")
 	}
 }

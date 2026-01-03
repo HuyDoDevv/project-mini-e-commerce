@@ -28,7 +28,7 @@ func NewConfig() *Config {
 			DBName:   utils.GetEnv("DB_NAME", "myapp"),
 			User:     utils.GetEnv("DB_USER", "postgres"),
 			Password: utils.GetEnv("DB_PASSWORD", "postgres"),
-			SSLMode:  utils.GetEnv("DB_SSLMODE", "disable"),
+			SSLMode:  utils.GetEnv("DB_MODELESS", "disable"),
 		},
 	}
 }

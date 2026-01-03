@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func RecoveryMiddleware(recoveryLogger zerolog.Logger) gin.HandlerFunc {
+func RecoveryMiddleware(recoveryLogger *zerolog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -22,7 +22,7 @@ func RecoveryMiddleware(recoveryLogger zerolog.Logger) gin.HandlerFunc {
 					Str("method", ctx.Request.Method).
 					Str("client_ip", ctx.ClientIP()).
 					Str("panic", fmt.Sprintf("%v", err)).
-					Str("statck_at", ExtractFirstStackLine(stack)).
+					Str("stack_at", ExtractFirstStackLine(stack)).
 					Str("stack", string(stack)).
 					Msg("panic recovered")
 				ctx.AbortWithStatusJSON(500, gin.H{"code": "INTERNAL_SERVER_ERROR", "error": "try again later"})
