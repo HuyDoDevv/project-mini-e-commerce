@@ -17,10 +17,7 @@ func NewUserHandler(service v1service.UserService) *UserHandler {
 	}
 }
 
-func (uh *UserHandler) GetAllUser(ctx *gin.Context) {
-	var a []int
-	fmt.Println(a[1])
-}
+func (uh *UserHandler) GetAllUser(ctx *gin.Context) {}
 func (uh *UserHandler) CreateUser(*gin.Context) {
 
 }
@@ -30,4 +27,8 @@ func (uh *UserHandler) UpdateUser(*gin.Context) {
 }
 func (uh *UserHandler) DeleteUser(*gin.Context) {
 
+}
+func (uh *UserHandler) PanicUser(*gin.Context) {
+	var a []int
+	fmt.Println(a[1])
 }

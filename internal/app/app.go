@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os/signal"
 	"project-mini-e-commerce/internal/config"
+	"project-mini-e-commerce/internal/middleware"
 	"project-mini-e-commerce/internal/routes"
 	"project-mini-e-commerce/internal/validation"
 	"syscall"
@@ -29,7 +30,8 @@ func NewApplication(cfg *config.Config) *Application {
 		log.Fatalf("Failed to initialize validator: %v", err)
 	}
 
-	r := gin.Default()
+	go middleware.CleanupClient()
+	r := gin.New()
 
 	app := &Application{
 		config: cfg,
