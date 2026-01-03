@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"project-mini-e-commerce/internal/common"
 	"project-mini-e-commerce/internal/middleware"
+	"project-mini-e-commerce/internal/utils"
+	"project-mini-e-commerce/pkg/logger"
 
 	"github.com/gin-gonic/gin"
-	"github.com/natefinch/lumberjack"
 	"github.com/rs/zerolog"
 )
 
@@ -13,27 +15,12 @@ type Route interface {
 }
 
 func RegisterRoutes(r *gin.Engine, routers ...Route) {
-	httpLogger := zerolog.New(&lumberjack.Logger{
-		Filename:   "../../internal/logs/http.log",
-		MaxSize:    1, // megabytes MB
-		MaxAge:     5, // 5 days
-		MaxBackups: 5,
-		Compress:   true, // cos nen la khong
-		LocalTime:  true, // gio vi tri hien tai
-	}).With().Timestamp().Logger()
-
-	recoveryLogger := zerolog.New(&lumberjack.Logger{
-		Filename:   "../../internal/logs/recovery.log",
-		MaxSize:    1, // megabytes MB
-		MaxAge:     5, // 5 days
-		MaxBackups: 5,
-		Compress:   true, // cos nen la khong
-		LocalTime:  true, // gio vi tri hien tai
-	}).With().Timestamp().Logger()
+	httpLogger := newLoggerWithPath("../../internal/logs/http.log", "info")
+	recoveryLogger := newLoggerWithPath("../../internal/logs/recovery.log", "warning")
 
 	r.Use(
-		middleware.LoggerMiddleware(httpLogger),
-		middleware.RecoveryMiddleware(recoveryLogger),
+		middleware.LoggerMiddleware(*httpLogger),
+		middleware.RecoveryMiddleware(*recoveryLogger),
 		middleware.ApiKeyMiddleware(),
 		middleware.LimiterMiddleware(),
 	)
@@ -43,4 +30,18 @@ func RegisterRoutes(r *gin.Engine, routers ...Route) {
 	for _, route := range routers {
 		route.Register(v1api)
 	}
+}
+
+func newLoggerWithPath(level, path string) *zerolog.Logger {
+	config := logger.Config{
+		Level:       level,
+		Filename:    path,
+		MaxSize:     1,
+		MaxAge:      5,
+		MaxBackups:  5,
+		Compress:    true,
+		Environment: common.Environment(utils.GetEnv("APP_ENV", "development")),
+	}
+
+	return logger.NewLogger(config)
 }

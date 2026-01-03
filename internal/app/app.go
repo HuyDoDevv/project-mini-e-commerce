@@ -29,7 +29,7 @@ func NewApplication(cfg *config.Config) *Application {
 		log.Fatalf("Failed to initialize validator: %v", err)
 	}
 
-	r := gin.Default()
+	r := gin.New()
 
 	app := &Application{
 		config: cfg,
