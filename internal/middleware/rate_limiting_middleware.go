@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"golang.org/x/time/rate"
 )
 
@@ -41,20 +42,20 @@ func RateLimiter(ip string) *rate.Limiter {
 	return client.Limiter
 }
 
-//func CleanupClient() {
-//	for {
-//		time.Sleep(time.Minute)
-//		mu.Lock()
-//		for ip, client := range clients {
-//			if time.Since(client.LastSeen) > 3*time.Minute {
-//				delete(clients, ip)
-//			}
-//		}
-//		mu.Unlock()
-//	}
-//}
+func CleanupClient() {
+	for {
+		time.Sleep(time.Minute)
+		mu.Lock()
+		for ip, client := range clients {
+			if time.Since(client.LastSeen) > 3*time.Minute {
+				delete(clients, ip)
+			}
+		}
+		mu.Unlock()
+	}
+}
 
-func LimiterMiddleware() gin.HandlerFunc {
+func LimiterMiddleware(rateLimiter zerolog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ip := getIpClient(ctx)
 		limiter := RateLimiter(ip)

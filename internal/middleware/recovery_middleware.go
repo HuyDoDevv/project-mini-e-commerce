@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"runtime/debug"
 	"strings"
 
@@ -32,6 +33,8 @@ func RecoveryMiddleware(recoveryLogger zerolog.Logger) gin.HandlerFunc {
 	}
 }
 
+var stackLineRegex = regexp.MustCompile(`(.+\.go:\d+)`)
+
 func ExtractFirstStackLine(stack []byte) string {
 	lines := bytes.Split(stack, []byte("\n"))
 	for _, line := range lines {
@@ -40,6 +43,10 @@ func ExtractFirstStackLine(stack []byte) string {
 			!bytes.Contains(line, []byte("/debug/")) &&
 			!bytes.Contains(line, []byte("recovery_middleware.go")) {
 			cleanLine := strings.TrimSpace(string(line))
+			math := stackLineRegex.FindStringSubmatch(cleanLine)
+			if len(math) > 1 {
+				return math[1]
+			}
 			return cleanLine
 		}
 	}
