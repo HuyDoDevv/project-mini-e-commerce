@@ -11,11 +11,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var DB *sqlc.Queries
+var DB sqlc.Querier
 
 func InitDB() error {
 	connStr := config.NewConfig().DNS()
-
 	conf, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return fmt.Errorf("error parsing DB config: %v", err)
