@@ -3,6 +3,7 @@ package pgx
 import (
 	"context"
 	"fmt"
+	"project-mini-e-commerce/pkg/logger"
 	"reflect"
 	"regexp"
 	"strings"
@@ -98,6 +99,7 @@ func (t *ZerlogTrace) Log(ctx context.Context, level tracelog.LogLevel, msg stri
 	}
 
 	baseLoger := t.Logger.With().
+		Str("trace_id", logger.GetTraceId(ctx)).
 		Dur("duration", duration).
 		Str("sql_original", queryInfo.OriginalSQL).
 		Str("sql", finalSQL).
@@ -106,14 +108,14 @@ func (t *ZerlogTrace) Log(ctx context.Context, level tracelog.LogLevel, msg stri
 		Str("operation", queryInfo.OperationType).
 		Interface("args", agrs)
 
-	logger := baseLoger.Logger()
+	finalLogger := baseLoger.Logger()
 	if msg == "Query" && duration > t.SlowQueryLimit {
-		logger.Warn().Str("event", "Slow query").Msg("Slow SQL query")
+		finalLogger.Warn().Str("event", "Slow query").Msg("Slow SQL query")
 		return
 	}
 
 	if msg == "Query" {
-		logger.Info().Str("event", "Query").Msg("Executed SQL query")
+		finalLogger.Info().Str("event", "Query").Msg("Executed SQL query")
 		return
 	}
 }

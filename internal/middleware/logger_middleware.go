@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"project-mini-e-commerce/pkg/logger"
 	"strings"
 	"time"
 
@@ -103,6 +104,7 @@ func LoggerMiddleware(httpLogger *zerolog.Logger) gin.HandlerFunc {
 		logEvent := httpLogger.Info()
 
 		logEvent.
+			Str("trace_id", logger.GetTraceId(ctx.Request.Context())).
 			Str("method", ctx.Request.Method).
 			Str("path", ctx.Request.URL.Path).
 			Str("query", ctx.Request.URL.RawQuery).
