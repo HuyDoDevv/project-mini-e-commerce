@@ -9,32 +9,50 @@ import (
 	"context"
 )
 
-const getUsers = `-- name: GetUsers :many
-SELECT user_id, uuid, name, email, created_at FROM users
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (
+    user_email,
+    user_password,
+    user_name,
+    user_age,
+    user_status,
+    user_role
+) VALUES (
+     $1, $2, $3, $4, $5, $6
+ ) RETURNING user_id, user_uuid, user_email, user_password, user_name, user_age, user_status, user_role, user_deleted_at, user_created_at, user_updated_at
 `
 
-func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
-	rows, err := q.db.Query(ctx, getUsers)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []User{}
-	for rows.Next() {
-		var i User
-		if err := rows.Scan(
-			&i.UserID,
-			&i.Uuid,
-			&i.Name,
-			&i.Email,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+type CreateUserParams struct {
+	UserEmail    string `json:"user_email"`
+	UserPassword string `json:"user_password"`
+	UserName     string `json:"user_name"`
+	UserAge      *int32 `json:"user_age"`
+	UserStatus   int32  `json:"user_status"`
+	UserRole     int32  `json:"user_role"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.UserEmail,
+		arg.UserPassword,
+		arg.UserName,
+		arg.UserAge,
+		arg.UserStatus,
+		arg.UserRole,
+	)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.UserUuid,
+		&i.UserEmail,
+		&i.UserPassword,
+		&i.UserName,
+		&i.UserAge,
+		&i.UserStatus,
+		&i.UserRole,
+		&i.UserDeletedAt,
+		&i.UserCreatedAt,
+		&i.UserUpdatedAt,
+	)
+	return i, err
 }

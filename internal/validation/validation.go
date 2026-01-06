@@ -86,11 +86,7 @@ func HandleValidationErrors(err error) gin.H {
 			}
 		}
 
-		return gin.H{
-			"error":        "error",
-			"detail_error": errors,
-		}
-
+		return gin.H{"error": errors}
 	}
 
 	return gin.H{

@@ -6,19 +6,30 @@ import (
 	"log"
 	"project-mini-e-commerce/internal/config"
 	"project-mini-e-commerce/internal/db/sqlc"
+	"project-mini-e-commerce/internal/utils"
+	"project-mini-e-commerce/pkg/pgx"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/tracelog"
 )
 
-var DB *sqlc.Queries
+var DB sqlc.Querier
 
 func InitDB() error {
 	connStr := config.NewConfig().DNS()
-
 	conf, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return fmt.Errorf("error parsing DB config: %v", err)
+	}
+
+	sqlLogger := utils.NewLoggerWithPath("../../internal/logs/slq.log", "warning")
+	conf.ConnConfig.Tracer = &tracelog.TraceLog{
+		Logger: &pgx.ZerlogTrace{
+			Logger:         *sqlLogger,
+			SlowQueryLimit: 500 * time.Millisecond,
+		},
+		LogLevel: tracelog.LogLevelDebug,
 	}
 
 	conf.MaxConns = 50

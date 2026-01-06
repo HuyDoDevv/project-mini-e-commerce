@@ -12,8 +12,8 @@ type UserModel struct {
 	routes routes.Route
 }
 
-func NewUserModel() *UserModel {
-	userRepo := repository.NewQueryUserRepository()
+func NewUserModel(moduleCtx *ModuleContext) *UserModel {
+	userRepo := repository.NewQueryUserRepository(moduleCtx.DB)
 
 	userSer := v1service.NewUserService(userRepo)
 

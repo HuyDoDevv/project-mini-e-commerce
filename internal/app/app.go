@@ -7,13 +7,15 @@ import (
 	"net/http"
 	"os/signal"
 	"project-mini-e-commerce/internal/config"
-	"project-mini-e-commerce/internal/middleware"
+	"project-mini-e-commerce/internal/db"
+	"project-mini-e-commerce/internal/db/sqlc"
 	"project-mini-e-commerce/internal/routes"
 	"project-mini-e-commerce/internal/validation"
 	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 type Module interface {
@@ -25,13 +27,21 @@ type Application struct {
 	router *gin.Engine
 }
 
+type ModuleContext struct {
+	DB sqlc.Querier
+}
+
 func NewApplication(cfg *config.Config) *Application {
 	if err := validation.InitValidator(); err != nil {
 		log.Fatalf("Failed to initialize validator: %v", err)
 	}
-
-	go middleware.CleanupClient()
+	loadEnv()
+	//go middleware.CleanupClient()
 	r := gin.New()
+
+	if err := db.InitDB(); err != nil {
+		log.Fatalf("Failed to initialize DB: %v", err)
+	}
 
 	app := &Application{
 		config: cfg,
@@ -44,8 +54,12 @@ func NewApplication(cfg *config.Config) *Application {
 }
 
 func (a *Application) registerModules() {
+	ctx := &ModuleContext{
+		DB: db.DB,
+	}
+
 	modules := []Module{
-		NewUserModel(),
+		NewUserModel(ctx),
 	}
 
 	var moduleRoutes []routes.Route
@@ -92,4 +106,11 @@ func (a *Application) Run() error {
 	}
 
 	return nil
+}
+
+func loadEnv() {
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		log.Println("No .env file found")
+	}
 }
