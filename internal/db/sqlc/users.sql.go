@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -39,6 +41,91 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.UserAge,
 		arg.UserStatus,
 		arg.UserRole,
+	)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.UserUuid,
+		&i.UserEmail,
+		&i.UserPassword,
+		&i.UserName,
+		&i.UserAge,
+		&i.UserStatus,
+		&i.UserRole,
+		&i.UserDeletedAt,
+		&i.UserCreatedAt,
+		&i.UserUpdatedAt,
+	)
+	return i, err
+}
+
+const getAllUsers = `-- name: GetAllUsers :many
+SELECT user_id, user_uuid, user_email, user_password, user_name, user_age, user_status, user_role, user_deleted_at, user_created_at, user_updated_at FROM users WHERE user_deleted_at IS NULL
+`
+
+func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
+	rows, err := q.db.Query(ctx, getAllUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []User{}
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.UserID,
+			&i.UserUuid,
+			&i.UserEmail,
+			&i.UserPassword,
+			&i.UserName,
+			&i.UserAge,
+			&i.UserStatus,
+			&i.UserRole,
+			&i.UserDeletedAt,
+			&i.UserCreatedAt,
+			&i.UserUpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET
+    user_name = COALESCE($1,user_name),
+    user_password = COALESCE($2,user_password),
+    user_age = COALESCE($3,user_age),
+    user_status = COALESCE($4,user_status),
+    user_role = COALESCE($5,user_role)
+WHERE
+    user_uuid = $6 AND
+    user_deleted_at IS NULL
+    RETURNING user_id, user_uuid, user_email, user_password, user_name, user_age, user_status, user_role, user_deleted_at, user_created_at, user_updated_at
+`
+
+type UpdateUserParams struct {
+	UserName     *string   `json:"user_name"`
+	UserPassword *string   `json:"user_password"`
+	UserAge      *int32    `json:"user_age"`
+	UserStatus   *int32    `json:"user_status"`
+	UserRole     *int32    `json:"user_role"`
+	UserUuid     uuid.UUID `json:"user_uuid"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.UserName,
+		arg.UserPassword,
+		arg.UserAge,
+		arg.UserStatus,
+		arg.UserRole,
+		arg.UserUuid,
 	)
 	var i User
 	err := row.Scan(

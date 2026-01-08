@@ -21,7 +21,14 @@ func NewUserService(repo repository.UserRepository) UserService {
 	}
 }
 
-func (us *userService) GetAllUser(*gin.Context) {}
+func (us *userService) GetAllUser(ctx *gin.Context) ([]sqlc.User, error) {
+	context := ctx.Request.Context()
+	users, err := us.repo.GetAll(context)
+	if err != nil {
+		return []sqlc.User{}, utils.NewError("cannot fetch users", utils.ErrCodeInternal)
+	}
+	return users, nil
+}
 func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams) (sqlc.User, error) {
 	context := ctx.Request.Context()
 
@@ -47,5 +54,21 @@ func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams)
 	return user, nil
 }
 func (us *userService) GetByUserUUID() {}
-func (us *userService) UpdateUser()    {}
-func (us *userService) DeleteUser()    {}
+func (us *userService) UpdateUser(ctx *gin.Context, input sqlc.UpdateUserParams) (sqlc.User, error) {
+	context := ctx.Request.Context()
+	if input.UserPassword != nil && *input.UserPassword != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*input.UserPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return sqlc.User{}, utils.WrapError(err, "failed to hash password", utils.ErrCodeInternal)
+		}
+		hasher := string(hashedPassword)
+		input.UserPassword = &hasher
+	}
+
+	user, err := us.repo.Update(context, input)
+	if err != nil {
+		return sqlc.User{}, utils.WrapError(err, "failed to update user", utils.ErrCodeInternal)
+	}
+	return user, nil
+}
+func (us *userService) DeleteUser() {}

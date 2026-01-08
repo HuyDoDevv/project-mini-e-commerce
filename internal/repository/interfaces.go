@@ -6,10 +6,10 @@ import (
 )
 
 type UserRepository interface {
-	GetAll()
+	GetAll(ctx context.Context) ([]sqlc.User, error)
 	Create(ctx context.Context, userParams sqlc.CreateUserParams) (sqlc.User, error)
 	GetByUUID()
-	Update()
+	Update(ctx context.Context, input sqlc.UpdateUserParams) (sqlc.User, error)
 	Delete()
 	FindUserByEmail()
 }

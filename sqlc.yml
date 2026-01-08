@@ -85,3 +85,4 @@ sql:
           # ==== UUID ====
           - db_type: "uuid"
             go_type: "github.com/google/uuid.UUID"
+            nullable: true
