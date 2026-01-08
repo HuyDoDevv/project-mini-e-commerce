@@ -3,6 +3,8 @@ package v1dto
 import (
 	"project-mini-e-commerce/internal/db/sqlc"
 	"project-mini-e-commerce/internal/utils"
+
+	"github.com/google/uuid"
 )
 
 type UserDTO struct {
@@ -55,6 +57,17 @@ func (input *CreateUserInput) MapCreateInputToModel() sqlc.CreateUserParams {
 	}
 }
 
+func (input *UpdateUserInput) MapUpdateInputToModel(UserUuid uuid.UUID) sqlc.UpdateUserParams {
+	return sqlc.UpdateUserParams{
+		UserName:     input.Name,
+		UserPassword: input.Password,
+		UserAge:      input.Age,
+		UserStatus:   input.Status,
+		UserRole:     input.Level,
+		UserUuid:     UserUuid,
+	}
+}
+
 func MapUserToDTO(user sqlc.User) *UserDTO {
 	dto := &UserDTO{
 		UUID:      user.UserUuid.String(),
@@ -79,15 +92,15 @@ func MapUserToDTO(user sqlc.User) *UserDTO {
 	return dto
 }
 
-//func MapUsersToDTO(users []sqlc.User) []UserDTO {
-//	dtos := make([]UserDTO, 0, len(users))
-//
-//	for _, user := range users {
-//		dtos = append(dtos, *MapUserToDTO(user))
-//	}
-//
-//	return dtos
-//}
+func MapUsersToDTO(users []sqlc.User) []UserDTO {
+	userDos := make([]UserDTO, 0, len(users))
+
+	for _, user := range users {
+		userDos = append(userDos, *MapUserToDTO(user))
+	}
+
+	return userDos
+}
 
 func mapStatusText(status int) string {
 	switch status {
