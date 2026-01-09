@@ -2,7 +2,10 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"project-mini-e-commerce/internal/db/sqlc"
+
+	"github.com/google/uuid"
 )
 
 type QueryUserRepository struct {
@@ -38,5 +41,34 @@ func (ur *QueryUserRepository) Update(ctx context.Context, input sqlc.UpdateUser
 	}
 	return user, nil
 }
-func (ur *QueryUserRepository) Delete()          {}
 func (ur *QueryUserRepository) FindUserByEmail() {}
+func (ur *QueryUserRepository) Delete(ctx context.Context, userUuid uuid.UUID) error {
+	rowsAffected, err := ur.db.DeleteUser(ctx, userUuid)
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("user not found or already deleted")
+	}
+	return nil
+}
+func (ur *QueryUserRepository) Restore(ctx context.Context, userUuid uuid.UUID) error {
+	rowsAffected, err := ur.db.RestoreUser(ctx, userUuid)
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("user not found or already deleted")
+	}
+	return nil
+}
+func (ur *QueryUserRepository) Trash(ctx context.Context, userUuid uuid.UUID) error {
+	rowsAffected, err := ur.db.TrashUser(ctx, userUuid)
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("user not found or already deleted")
+	}
+	return nil
+}

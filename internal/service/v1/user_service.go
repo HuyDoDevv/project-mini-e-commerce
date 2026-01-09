@@ -7,6 +7,7 @@ import (
 	"project-mini-e-commerce/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -71,4 +72,27 @@ func (us *userService) UpdateUser(ctx *gin.Context, input sqlc.UpdateUserParams)
 	}
 	return user, nil
 }
-func (us *userService) DeleteUser() {}
+func (us *userService) DeleteUser(ctx *gin.Context, userUuid uuid.UUID) error {
+	context := ctx.Request.Context()
+
+	err := us.repo.Delete(context, userUuid)
+	if err != nil {
+		return utils.WrapError(err, "failed to delete user", utils.ErrCodeInternal)
+	}
+	return nil
+}
+func (us *userService) RestoreUser(ctx *gin.Context, userUuid uuid.UUID) error {
+	context := ctx.Request.Context()
+
+	if err := us.repo.Restore(context, userUuid); err != nil {
+		return utils.WrapError(err, "failed to restore user", utils.ErrCodeInternal)
+	}
+	return nil
+}
+func (us *userService) TrashUser(ctx *gin.Context, userUuid uuid.UUID) error {
+	context := ctx.Request.Context()
+	if err := us.repo.Trash(context, userUuid); err != nil {
+		return utils.WrapError(err, "failed to trash user", utils.ErrCodeInternal)
+	}
+	return nil
+}

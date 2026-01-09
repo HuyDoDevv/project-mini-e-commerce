@@ -4,6 +4,7 @@ import (
 	"project-mini-e-commerce/internal/db/sqlc"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type UserService interface {
@@ -11,5 +12,7 @@ type UserService interface {
 	CreateUser(ctx *gin.Context, userParams sqlc.CreateUserParams) (sqlc.User, error)
 	GetByUserUUID()
 	UpdateUser(ctx *gin.Context, userParams sqlc.UpdateUserParams) (sqlc.User, error)
-	DeleteUser()
+	DeleteUser(ctx *gin.Context, userUuid uuid.UUID) error
+	RestoreUser(ctx *gin.Context, userUuid uuid.UUID) error
+	TrashUser(ctx *gin.Context, userUuid uuid.UUID) error
 }

@@ -1,7 +1,6 @@
 package v1handler
 
 import (
-	"fmt"
 	"net/http"
 	v1dto "project-mini-e-commerce/internal/dto/v1"
 	v1service "project-mini-e-commerce/internal/service/v1"
@@ -59,7 +58,7 @@ func (uh *UserHandler) UpdateUser(ctx *gin.Context) {
 		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
 		return
 	}
-	fmt.Println(params.Uuid)
+
 	uuidParse, err := uuid.Parse(params.Uuid)
 	if err != nil {
 		utils.ResponseError(ctx, err)
@@ -83,5 +82,50 @@ func (uh *UserHandler) UpdateUser(ctx *gin.Context) {
 	utils.ResponseSuccess(ctx, http.StatusOK, updateUser)
 }
 func (uh *UserHandler) DeleteUser(ctx *gin.Context) {
-
+	var params v1dto.GetUserByUuidParam
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
+		return
+	}
+	uuidParse, err := uuid.Parse(params.Uuid)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+	if err := uh.service.DeleteUser(ctx, uuidParse); err != nil {
+		utils.ResponseError(ctx, err)
+	}
+	utils.ResponseStatusCode(ctx, http.StatusOK)
+}
+func (uh *UserHandler) RestoreUser(ctx *gin.Context) {
+	var params v1dto.GetUserByUuidParam
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
+		return
+	}
+	uuidParse, err := uuid.Parse(params.Uuid)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+	if err := uh.service.RestoreUser(ctx, uuidParse); err != nil {
+		utils.ResponseError(ctx, err)
+	}
+	utils.ResponseStatusCode(ctx, http.StatusOK)
+}
+func (uh *UserHandler) TrashUser(ctx *gin.Context) {
+	var params v1dto.GetUserByUuidParam
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
+		return
+	}
+	uuidParse, err := uuid.Parse(params.Uuid)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+	if err := uh.service.TrashUser(ctx, uuidParse); err != nil {
+		utils.ResponseError(ctx, err)
+	}
+	utils.ResponseStatusCode(ctx, http.StatusOK)
 }

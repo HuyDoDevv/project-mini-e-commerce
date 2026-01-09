@@ -22,6 +22,24 @@ SET
     user_status = COALESCE(sqlc.narg(user_status),user_status),
     user_role = COALESCE(sqlc.narg(user_role),user_role)
 WHERE
-    user_uuid = sqlc.narg(user_uuid) AND
+    user_uuid = $1 AND
     user_deleted_at IS NULL
     RETURNING *;
+
+-- name: DeleteUser :execrows
+UPDATE users
+SET user_deleted_at = NOW()
+WHERE user_uuid = $1
+AND user_deleted_at IS NULL;
+
+-- name: RestoreUser :execrows
+UPDATE users
+SET user_deleted_at = NULL
+WHERE user_uuid = $1
+AND user_deleted_at IS NOT NULL;
+
+-- name: TrashUser :execrows
+DELETE
+FROM users
+WHERE user_uuid = $1
+AND user_deleted_at IS NOT NULL;
