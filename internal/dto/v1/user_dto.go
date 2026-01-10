@@ -46,6 +46,10 @@ type GetUsersParams struct {
 	Sort   string `form:"sort" binding:"omitempty,oneof=asc desc"`
 }
 
+func (input *GetUsersParams) search() {
+
+}
+
 func (input *CreateUserInput) MapCreateInputToModel() sqlc.CreateUserParams {
 	return sqlc.CreateUserParams{
 		UserEmail:    input.Email,

@@ -1,5 +1,58 @@
--- name: GetAllUsers :many
-SELECT * FROM users WHERE user_deleted_at IS NULL;
+-- name: GetAllUserIdASC :many
+SELECT *
+FROM users
+WHERE user_deleted_at IS NULL
+AND (
+    sqlc.narg(search)::TEXT IS NULL
+    OR sqlc.narg(search) = '::TEXT'
+    OR user_email ILIKE '%' || sqlc.narg(search) || '%'
+    OR user_name  ILIKE '%' || sqlc.narg(search) || '%'
+)
+ORDER BY user_id ASC
+LIMIT $1 OFFSET $2;
+
+-- name: GetAllUserIdDESC :many
+SELECT *
+FROM users
+WHERE user_deleted_at IS NULL
+  AND (
+    sqlc.narg(search)::TEXT IS NULL
+        OR sqlc.narg(search)::TEXT = ''
+        OR user_email ILIKE '%' || sqlc.narg(search) || '%'
+    OR user_name  ILIKE '%' || sqlc.narg(search) || '%'
+    )
+ORDER BY user_id DESC
+LIMIT $1 OFFSET $2;
+
+-- name: GetAllUserCreateASC :many
+SELECT *
+FROM users
+WHERE user_deleted_at IS NULL
+  AND (
+    sqlc.narg(search)::TEXT IS NULL
+        OR sqlc.narg(search)::TEXT = ''
+        OR user_email ILIKE '%' || sqlc.narg(search) || '%'
+    OR user_name  ILIKE '%' || sqlc.narg(search) || '%'
+    )
+ORDER BY user_created_at ASC
+LIMIT $1 OFFSET $2;
+
+
+-- name: GetAllUserCreateDESC :many
+SELECT *
+FROM users
+WHERE user_deleted_at IS NULL
+  AND (
+    sqlc.narg(search)::TEXT IS NULL
+        OR sqlc.narg(search)::TEXT = ''
+        OR user_email ILIKE '%' || sqlc.narg(search) || '%'
+    OR user_name  ILIKE '%' || sqlc.narg(search) || '%'
+    )
+ORDER BY user_created_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountAllUsers :one
+SELECT COUNT(*) FROM users WHERE user_deleted_at IS NULL;
 
 -- name: CreateUser :one
 INSERT INTO users (
@@ -43,3 +96,4 @@ DELETE
 FROM users
 WHERE user_uuid = $1
 AND user_deleted_at IS NOT NULL;
+

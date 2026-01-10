@@ -22,13 +22,20 @@ func NewUserHandler(service v1service.UserService) *UserHandler {
 }
 
 func (uh *UserHandler) GetAllUser(ctx *gin.Context) {
-	users, err := uh.service.GetAllUser(ctx)
+	var params v1dto.GetUsersParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
+		return
+	}
+
+	users, countUser, err := uh.service.GetAllUser(ctx, params.Search, params.Order, params.Sort, params.Limit, params.Page)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
 	userDTO := v1dto.MapUsersToDTO(users)
-	utils.ResponseSuccess(ctx, http.StatusOK, userDTO)
+	userPagination := utils.NewPaginationResponse(userDTO, params.Limit, params.Page, countUser)
+	utils.ResponseSuccess(ctx, http.StatusOK, userPagination)
 
 }
 func (uh *UserHandler) CreateUser(ctx *gin.Context) {
