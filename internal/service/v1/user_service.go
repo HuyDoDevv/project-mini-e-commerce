@@ -2,11 +2,13 @@ package v1service
 
 import (
 	"errors"
+	"fmt"
 	"project-mini-e-commerce/internal/db/sqlc"
 	"project-mini-e-commerce/internal/repository"
 	"project-mini-e-commerce/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,19 +17,55 @@ type userService struct {
 	repo repository.UserRepository
 }
 
+func (us *userService) GetUserByUUID(ctx *gin.Context, userUuid uuid.UUID) (sqlc.User, error) {
+	context := ctx.Request.Context()
+	user, err := us.repo.FindUUID(context, userUuid)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+	}
+	return user, nil
+}
+
 func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{
 		repo: repo,
 	}
 }
 
-func (us *userService) GetAllUser(ctx *gin.Context) ([]sqlc.User, error) {
+func (us *userService) GetAllUser(ctx *gin.Context, search, orderBy, sort string, limit, page int32, deleted bool) ([]sqlc.User, int64, error) {
 	context := ctx.Request.Context()
-	users, err := us.repo.GetAll(context)
-	if err != nil {
-		return []sqlc.User{}, utils.NewError("cannot fetch users", utils.ErrCodeInternal)
+
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	if limit <= 0 {
+		limit = 10
 	}
-	return users, nil
+	if page <= 0 {
+		page = 1
+	}
+	if orderBy == "" {
+		orderBy = "user_id"
+	}
+	if sort == "" {
+		sort = "asc"
+	}
+	offset := (page - 1) * limit
+	search = utils.NormalizeString(search)
+	users, err := us.repo.GetAll2(context, search, orderBy, sort, limit, offset, deleted)
+	if err != nil {
+		return []sqlc.User{}, 0, utils.NewError("cannot fetch users", utils.ErrCodeInternal)
+	}
+
+	countUser, err := us.repo.CountAllUsers(ctx)
+	if err != nil {
+		return []sqlc.User{}, 0, utils.WrapError(err, "failed to count all users", utils.ErrCodeInternal)
+	}
+	return users, countUser, nil
 }
 func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams) (sqlc.User, error) {
 	context := ctx.Request.Context()
@@ -53,7 +91,7 @@ func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams)
 
 	return user, nil
 }
-func (us *userService) GetByUserUUID() {}
+
 func (us *userService) UpdateUser(ctx *gin.Context, input sqlc.UpdateUserParams) (sqlc.User, error) {
 	context := ctx.Request.Context()
 	if input.UserPassword != nil && *input.UserPassword != "" {
@@ -71,4 +109,27 @@ func (us *userService) UpdateUser(ctx *gin.Context, input sqlc.UpdateUserParams)
 	}
 	return user, nil
 }
-func (us *userService) DeleteUser() {}
+func (us *userService) DeleteUser(ctx *gin.Context, userUuid uuid.UUID) error {
+	context := ctx.Request.Context()
+
+	err := us.repo.Delete(context, userUuid)
+	if err != nil {
+		return utils.WrapError(err, "failed to delete user", utils.ErrCodeInternal)
+	}
+	return nil
+}
+func (us *userService) RestoreUser(ctx *gin.Context, userUuid uuid.UUID) error {
+	context := ctx.Request.Context()
+
+	if err := us.repo.Restore(context, userUuid); err != nil {
+		return utils.WrapError(err, "failed to restore user", utils.ErrCodeInternal)
+	}
+	return nil
+}
+func (us *userService) TrashUser(ctx *gin.Context, userUuid uuid.UUID) error {
+	context := ctx.Request.Context()
+	if err := us.repo.Trash(context, userUuid); err != nil {
+		return utils.WrapError(err, "failed to trash user", utils.ErrCodeInternal)
+	}
+	return nil
+}

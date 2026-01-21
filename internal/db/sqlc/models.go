@@ -7,15 +7,16 @@ package sqlc
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type User struct {
-	UserID       int32       `json:"user_id"`
-	UserUuid     pgtype.UUID `json:"user_uuid"`
-	UserEmail    string      `json:"user_email"`
-	UserPassword string      `json:"user_password"`
-	UserName     string      `json:"user_name"`
+	UserID       int32     `json:"user_id"`
+	UserUuid     uuid.UUID `json:"user_uuid"`
+	UserEmail    string    `json:"user_email"`
+	UserPassword string    `json:"user_password"`
+	UserName     string    `json:"user_name"`
 	// User age, must be between 1 and 150
 	UserAge *int32 `json:"user_age"`
 	// User status: 1 - Active, 2 - Inactive, 3 - Banned

@@ -9,16 +9,25 @@ import (
 type ErrorCode string
 
 const (
-	ErrCodeBadRequest ErrorCode = "BAD_REQUEST"
-	ErrCodeNotFound   ErrorCode = "NOT_FOUND"
-	ErrCodeConflict   ErrorCode = "CONFLICT"
-	ErrCodeInternal   ErrorCode = "INTERNAL_SERVER_ERROR"
+	ErrCodeBadRequest      ErrorCode = "BAD_REQUEST"
+	ErrCodeNotFound        ErrorCode = "NOT_FOUND"
+	ErrCodeConflict        ErrorCode = "CONFLICT"
+	ErrCodeInternal        ErrorCode = "INTERNAL_SERVER_ERROR"
+	ErrCodeUnauthorized    ErrorCode = "UNAUTHORIZED"
+	ErrCodeTooManyRequests ErrorCode = "TOO_MANY_REQUESTS"
 )
 
 type AppError struct {
 	Message string
 	Code    ErrorCode
 	Err     error
+}
+
+type APIResponse struct {
+	Status     string `json:"status"`
+	Message    string `json:"message,omitempty"`
+	Data       any    `json:"data,omitempty"`
+	Pagination any    `json:"pagination,omitempty"`
 }
 
 func (ae *AppError) Error() string {
@@ -44,7 +53,7 @@ func ResponseError(ctx *gin.Context, err error) {
 	if appErr, ok := err.(*AppError); ok {
 		status := httpStatusFromCode(appErr.Code)
 		response := gin.H{
-			"error": appErr.Message,
+			"error": CapitalizeFirst(appErr.Message),
 			"code":  appErr.Code,
 		}
 
@@ -62,11 +71,29 @@ func ResponseError(ctx *gin.Context, err error) {
 	})
 }
 
-func ResponseSuccess(ctx *gin.Context, status int, data any) {
-	ctx.JSON(status, gin.H{
-		"status": "success",
-		"data":   data,
-	})
+func ResponseSuccess(ctx *gin.Context, status int, message string, data ...any) {
+	resp := APIResponse{
+		Status:  "success",
+		Message: CapitalizeFirst(message),
+	}
+
+	if len(data) > 0 && data[0] != nil {
+		if m, ok := data[0].(map[string]any); ok {
+			if p, exists := m["pagination"]; exists {
+				resp.Pagination = p
+			}
+
+			if d, exists := m["data"]; exists {
+				resp.Data = d
+			} else {
+				resp.Data = m
+			}
+		} else {
+			resp.Data = data[0]
+		}
+	}
+
+	ctx.JSON(status, resp)
 }
 
 func ResponseStatusCode(ctx *gin.Context, status int) {
@@ -85,6 +112,10 @@ func httpStatusFromCode(code ErrorCode) int {
 		return http.StatusNotFound
 	case ErrCodeConflict:
 		return http.StatusConflict
+	case ErrCodeUnauthorized:
+		return http.StatusUnauthorized
+	case ErrCodeTooManyRequests:
+		return http.StatusTooManyRequests
 	default:
 		return http.StatusInternalServerError
 	}
