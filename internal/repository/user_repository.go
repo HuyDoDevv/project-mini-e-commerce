@@ -55,16 +55,21 @@ func (ur *QueryUserRepository) GetAll(ctx context.Context, search, orderBy, sort
 	}
 	return users, nil
 }
-func (ur *QueryUserRepository) GetAll2(ctx context.Context, search, orderBy, sort string, limit, offset int32) ([]sqlc.User, error) {
-	query := `SELECT user_id, user_uuid, user_email, user_password, user_name, user_age, user_status, user_role, user_deleted_at, user_created_at, user_updated_at
+func (ur *QueryUserRepository) GetAll2(ctx context.Context, search, orderBy, sort string, limit, offset int32, deleted bool) ([]sqlc.User, error) {
+	query := `SELECT *
 			FROM users
-			WHERE user_deleted_at IS NULL
-			AND (
-				$3::TEXT IS NULL
-				OR $3 = '::TEXT'
-				OR user_email ILIKE '%' || $3 || '%'
-				OR user_name  ILIKE '%' || $3 || '%'
+			WHERE (
+				$1::TEXT IS NULL
+				OR $1 = '::TEXT'
+				OR user_email ILIKE '%' || $1 || '%'
+				OR user_name  ILIKE '%' || $1 || '%'
 			)`
+	if deleted {
+		query += " AND user_deleted_at IS NOT NULL"
+	} else {
+		query += " AND user_deleted_at IS NULL"
+	}
+
 	order := "ASC"
 	if sort == "desc" {
 		order = "DESC"
@@ -75,9 +80,9 @@ func (ur *QueryUserRepository) GetAll2(ctx context.Context, search, orderBy, sor
 	} else {
 		query += " ORDER BY user_id ASC"
 	}
-	query += fmt.Sprintf(" LIMIT $1 OFFSET $2")
+	query += " LIMIT $2 OFFSET $3"
 
-	rows, err := db.DBPool.Query(ctx, query, limit, offset, search)
+	rows, err := db.DBPool.Query(ctx, query, search, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -162,4 +167,12 @@ func (ur *QueryUserRepository) CountAllUsers(ctx context.Context) (int64, error)
 		return 0, err
 	}
 	return counterUser, nil
+}
+
+func (ur *QueryUserRepository) FindUUID(ctx context.Context, userUuid uuid.UUID) (sqlc.User, error) {
+	user, err := ur.db.GetUserByUUID(ctx, userUuid)
+	if err != nil {
+		return sqlc.User{}, err
+	}
+	return user, nil
 }

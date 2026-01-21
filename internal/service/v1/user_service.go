@@ -2,6 +2,7 @@ package v1service
 
 import (
 	"errors"
+	"fmt"
 	"project-mini-e-commerce/internal/db/sqlc"
 	"project-mini-e-commerce/internal/repository"
 	"project-mini-e-commerce/internal/utils"
@@ -16,14 +17,31 @@ type userService struct {
 	repo repository.UserRepository
 }
 
+func (us *userService) GetUserByUUID(ctx *gin.Context, userUuid uuid.UUID) (sqlc.User, error) {
+	context := ctx.Request.Context()
+	user, err := us.repo.FindUUID(context, userUuid)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+	}
+	return user, nil
+}
+
 func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{
 		repo: repo,
 	}
 }
 
-func (us *userService) GetAllUser(ctx *gin.Context, search, orderBy, sort string, limit, page int32) ([]sqlc.User, int64, error) {
+func (us *userService) GetAllUser(ctx *gin.Context, search, orderBy, sort string, limit, page int32, deleted bool) ([]sqlc.User, int64, error) {
 	context := ctx.Request.Context()
+
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
+	fmt.Println(deleted)
 	if limit <= 0 {
 		limit = 10
 	}
@@ -38,7 +56,7 @@ func (us *userService) GetAllUser(ctx *gin.Context, search, orderBy, sort string
 	}
 	offset := (page - 1) * limit
 	search = utils.NormalizeString(search)
-	users, err := us.repo.GetAll2(context, search, orderBy, sort, limit, offset)
+	users, err := us.repo.GetAll2(context, search, orderBy, sort, limit, offset, deleted)
 	if err != nil {
 		return []sqlc.User{}, 0, utils.NewError("cannot fetch users", utils.ErrCodeInternal)
 	}
@@ -73,7 +91,7 @@ func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams)
 
 	return user, nil
 }
-func (us *userService) GetByUserUUID() {}
+
 func (us *userService) UpdateUser(ctx *gin.Context, input sqlc.UpdateUserParams) (sqlc.User, error) {
 	context := ctx.Request.Context()
 	if input.UserPassword != nil && *input.UserPassword != "" {

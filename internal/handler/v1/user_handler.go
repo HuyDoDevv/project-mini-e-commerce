@@ -28,7 +28,7 @@ func (uh *UserHandler) GetAllUser(ctx *gin.Context) {
 		return
 	}
 
-	users, countUser, err := uh.service.GetAllUser(ctx, params.Search, params.Order, params.Sort, params.Limit, params.Page)
+	users, countUser, err := uh.service.GetAllUser(ctx, params.Search, params.Order, params.Sort, params.Limit, params.Page, params.Deleted)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -56,7 +56,25 @@ func (uh *UserHandler) CreateUser(ctx *gin.Context) {
 
 	utils.ResponseSuccess(ctx, http.StatusCreated, "ok", userDTO)
 }
-func (uh *UserHandler) GetByUserUUID(ctx *gin.Context) {}
+func (uh *UserHandler) GetByUserUUID(ctx *gin.Context) {
+	var params v1dto.GetUserByUuidParam
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandleValidationErrors(err))
+		return
+	}
+	uuidParse, err := uuid.Parse(params.Uuid)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	user, err := uh.service.GetUserByUUID(ctx, uuidParse)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+	utils.ResponseSuccess(ctx, http.StatusOK, "ok", v1dto.MapUserToDTO(user))
+}
 
 func (uh *UserHandler) UpdateUser(ctx *gin.Context) {
 	var params v1dto.GetUserByUuidParam

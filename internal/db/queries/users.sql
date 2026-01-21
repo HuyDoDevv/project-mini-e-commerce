@@ -97,3 +97,5 @@ FROM users
 WHERE user_uuid = $1
 AND user_deleted_at IS NOT NULL;
 
+-- name: GetUserByUUID :one
+SELECT * FROM users WHERE user_uuid = $1;

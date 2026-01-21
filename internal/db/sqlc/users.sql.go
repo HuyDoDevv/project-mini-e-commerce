@@ -293,6 +293,29 @@ func (q *Queries) GetAllUserIdDESC(ctx context.Context, arg GetAllUserIdDESCPara
 	return items, nil
 }
 
+const getUserByUUID = `-- name: GetUserByUUID :one
+SELECT user_id, user_uuid, user_email, user_password, user_name, user_age, user_status, user_role, user_deleted_at, user_created_at, user_updated_at FROM users WHERE user_uuid = $1
+`
+
+func (q *Queries) GetUserByUUID(ctx context.Context, userUuid uuid.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByUUID, userUuid)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.UserUuid,
+		&i.UserEmail,
+		&i.UserPassword,
+		&i.UserName,
+		&i.UserAge,
+		&i.UserStatus,
+		&i.UserRole,
+		&i.UserDeletedAt,
+		&i.UserCreatedAt,
+		&i.UserUpdatedAt,
+	)
+	return i, err
+}
+
 const restoreUser = `-- name: RestoreUser :execrows
 UPDATE users
 SET user_deleted_at = NULL
