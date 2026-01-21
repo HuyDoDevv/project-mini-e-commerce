@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"project-mini-e-commerce/internal/db"
 	"project-mini-e-commerce/internal/db/sqlc"
 
 	"github.com/google/uuid"
@@ -54,6 +55,59 @@ func (ur *QueryUserRepository) GetAll(ctx context.Context, search, orderBy, sort
 	}
 	return users, nil
 }
+func (ur *QueryUserRepository) GetAll2(ctx context.Context, search, orderBy, sort string, limit, offset int32) ([]sqlc.User, error) {
+	query := `SELECT user_id, user_uuid, user_email, user_password, user_name, user_age, user_status, user_role, user_deleted_at, user_created_at, user_updated_at
+			FROM users
+			WHERE user_deleted_at IS NULL
+			AND (
+				$3::TEXT IS NULL
+				OR $3 = '::TEXT'
+				OR user_email ILIKE '%' || $3 || '%'
+				OR user_name  ILIKE '%' || $3 || '%'
+			)`
+	order := "ASC"
+	if sort == "desc" {
+		order = "DESC"
+	}
+
+	if orderBy == "user_id" || orderBy == "user_updated_at" {
+		query += fmt.Sprintf(" ORDER BY %s %s", orderBy, order)
+	} else {
+		query += " ORDER BY user_id ASC"
+	}
+	query += fmt.Sprintf(" LIMIT $1 OFFSET $2")
+
+	rows, err := db.DBPool.Query(ctx, query, limit, offset, search)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var users []sqlc.User
+	for rows.Next() {
+		var i sqlc.User
+		if err := rows.Scan(
+			&i.UserID,
+			&i.UserUuid,
+			&i.UserEmail,
+			&i.UserPassword,
+			&i.UserName,
+			&i.UserAge,
+			&i.UserStatus,
+			&i.UserRole,
+			&i.UserDeletedAt,
+			&i.UserCreatedAt,
+			&i.UserUpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		users = append(users, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (ur *QueryUserRepository) Create(ctx context.Context, input sqlc.CreateUserParams) (sqlc.User, error) {
 	user, err := ur.db.CreateUser(ctx, input)
 	if err != nil {

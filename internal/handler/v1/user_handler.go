@@ -35,8 +35,7 @@ func (uh *UserHandler) GetAllUser(ctx *gin.Context) {
 	}
 	userDTO := v1dto.MapUsersToDTO(users)
 	userPagination := utils.NewPaginationResponse(userDTO, params.Limit, params.Page, countUser)
-	utils.ResponseSuccess(ctx, http.StatusOK, userPagination)
-
+	utils.ResponseSuccess(ctx, http.StatusOK, "ok", userPagination)
 }
 func (uh *UserHandler) CreateUser(ctx *gin.Context) {
 	var input v1dto.CreateUserInput
@@ -55,7 +54,7 @@ func (uh *UserHandler) CreateUser(ctx *gin.Context) {
 
 	userDTO := v1dto.MapUserToDTO(createdUser)
 
-	utils.ResponseSuccess(ctx, http.StatusCreated, userDTO)
+	utils.ResponseSuccess(ctx, http.StatusCreated, "ok", userDTO)
 }
 func (uh *UserHandler) GetByUserUUID(ctx *gin.Context) {}
 
@@ -86,7 +85,7 @@ func (uh *UserHandler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK, updateUser)
+	utils.ResponseSuccess(ctx, http.StatusOK, "ok", updateUser)
 }
 func (uh *UserHandler) DeleteUser(ctx *gin.Context) {
 	var params v1dto.GetUserByUuidParam

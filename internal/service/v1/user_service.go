@@ -38,7 +38,7 @@ func (us *userService) GetAllUser(ctx *gin.Context, search, orderBy, sort string
 	}
 	offset := (page - 1) * limit
 	search = utils.NormalizeString(search)
-	users, err := us.repo.GetAll(context, search, orderBy, sort, limit, offset)
+	users, err := us.repo.GetAll2(context, search, orderBy, sort, limit, offset)
 	if err != nil {
 		return []sqlc.User{}, 0, utils.NewError("cannot fetch users", utils.ErrCodeInternal)
 	}
