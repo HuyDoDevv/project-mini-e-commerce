@@ -15,7 +15,7 @@ type UserModel struct {
 func NewUserModel(moduleCtx *ModuleContext) *UserModel {
 	userRepo := repository.NewQueryUserRepository(moduleCtx.DB)
 
-	userSer := v1service.NewUserService(userRepo)
+	userSer := v1service.NewUserService(userRepo, moduleCtx.Redis)
 
 	userHand := v1handler.NewUserHandler(userSer)
 

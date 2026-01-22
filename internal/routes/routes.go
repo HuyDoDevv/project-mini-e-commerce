@@ -4,6 +4,7 @@ import (
 	"project-mini-e-commerce/internal/middleware"
 	"project-mini-e-commerce/internal/utils"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,6 +24,8 @@ func RegisterRoutes(r *gin.Engine, routers ...Route) {
 		middleware.RecoveryMiddleware(recoveryLogger),
 		middleware.ApiKeyMiddleware(),
 	)
+
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	v1api := r.Group("api/v1")
 
