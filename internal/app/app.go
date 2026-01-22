@@ -16,6 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 )
 
 type Module interface {
@@ -28,7 +29,8 @@ type Application struct {
 }
 
 type ModuleContext struct {
-	DB sqlc.Querier
+	DB    sqlc.Querier
+	Redis *redis.Client
 }
 
 func NewApplication(cfg *config.Config) *Application {
@@ -36,7 +38,6 @@ func NewApplication(cfg *config.Config) *Application {
 		log.Fatalf("Failed to initialize validator: %v", err)
 	}
 	loadEnv()
-	//go middleware.CleanupClient()
 	r := gin.New()
 
 	if err := db.InitDB(); err != nil {
@@ -54,8 +55,11 @@ func NewApplication(cfg *config.Config) *Application {
 }
 
 func (a *Application) registerModules() {
+	redisClient := config.NewRedisClient()
+
 	ctx := &ModuleContext{
-		DB: db.DB,
+		DB:    db.DB,
+		Redis: redisClient,
 	}
 
 	modules := []Module{

@@ -4,6 +4,7 @@ import (
 	"os"
 	"project-mini-e-commerce/internal/common"
 	"project-mini-e-commerce/pkg/logger"
+	"strconv"
 
 	"github.com/rs/zerolog"
 )
@@ -14,6 +15,19 @@ func GetEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return valueKey
+}
+
+func GetIntEnv(key string, defaultValue int) int {
+	valueKey := os.Getenv(key)
+	if valueKey == "" {
+		return defaultValue
+	}
+	intValue, err := strconv.Atoi(valueKey)
+	if err != nil {
+		return defaultValue
+	}
+
+	return intValue
 }
 
 func NewLoggerWithPath(path, level string) *zerolog.Logger {

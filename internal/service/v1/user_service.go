@@ -3,18 +3,31 @@ package v1service
 import (
 	"errors"
 	"fmt"
+	"log"
 	"project-mini-e-commerce/internal/db/sqlc"
 	"project-mini-e-commerce/internal/repository"
 	"project-mini-e-commerce/internal/utils"
+	"project-mini-e-commerce/pkg/cache"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type userService struct {
-	repo repository.UserRepository
+	repo  repository.UserRepository
+	cache *cache.RedisCacheService
+}
+
+func NewUserService(repo repository.UserRepository, redisClient *redis.Client) UserService {
+	return &userService{
+		repo:  repo,
+		cache: cache.NewRedisCacheService(redisClient),
+	}
 }
 
 func (us *userService) GetUserByUUID(ctx *gin.Context, userUuid uuid.UUID) (sqlc.User, error) {
@@ -26,22 +39,16 @@ func (us *userService) GetUserByUUID(ctx *gin.Context, userUuid uuid.UUID) (sqlc
 	return user, nil
 }
 
-func NewUserService(repo repository.UserRepository) UserService {
-	return &userService{
-		repo: repo,
-	}
-}
-
 func (us *userService) GetAllUser(ctx *gin.Context, search, orderBy, sort string, limit, page int32, deleted bool) ([]sqlc.User, int64, error) {
 	context := ctx.Request.Context()
-
-	fmt.Println(deleted)
-	fmt.Println(deleted)
-	fmt.Println(deleted)
-	fmt.Println(deleted)
-	fmt.Println(deleted)
-	fmt.Println(deleted)
-	fmt.Println(deleted)
+	var cacheData struct {
+		Users []sqlc.User
+		Total int64
+	}
+	cacheKey := us.generateCacheKey(search, orderBy, sort, limit, page, deleted)
+	if err := us.cache.Get(cacheKey, &cacheData); err == nil && cacheData.Users != nil {
+		return cacheData.Users, cacheData.Total, nil
+	}
 	if limit <= 0 {
 		limit = 10
 	}
@@ -55,7 +62,7 @@ func (us *userService) GetAllUser(ctx *gin.Context, search, orderBy, sort string
 		sort = "asc"
 	}
 	offset := (page - 1) * limit
-	search = utils.NormalizeString(search)
+
 	users, err := us.repo.GetAll2(context, search, orderBy, sort, limit, offset, deleted)
 	if err != nil {
 		return []sqlc.User{}, 0, utils.NewError("cannot fetch users", utils.ErrCodeInternal)
@@ -65,6 +72,19 @@ func (us *userService) GetAllUser(ctx *gin.Context, search, orderBy, sort string
 	if err != nil {
 		return []sqlc.User{}, 0, utils.WrapError(err, "failed to count all users", utils.ErrCodeInternal)
 	}
+
+	cacheData = struct {
+		Users []sqlc.User
+		Total int64
+	}{
+		Users: users,
+		Total: countUser,
+	}
+
+	if err := us.cache.Set(cacheKey, cacheData, 5*time.Minute); err != nil {
+		return []sqlc.User{}, 0, utils.WrapError(err, "failed to set cache", utils.ErrCodeInternal)
+	}
+
 	return users, countUser, nil
 }
 func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams) (sqlc.User, error) {
@@ -87,6 +107,10 @@ func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams)
 		}
 
 		return sqlc.User{}, utils.WrapError(err, "failed to create a new user", utils.ErrCodeInternal)
+	}
+
+	if err := us.cache.Clear("users:*"); err != nil {
+		log.Printf("failed to clear cache: %v", err)
 	}
 
 	return user, nil
@@ -132,4 +156,20 @@ func (us *userService) TrashUser(ctx *gin.Context, userUuid uuid.UUID) error {
 		return utils.WrapError(err, "failed to trash user", utils.ErrCodeInternal)
 	}
 	return nil
+}
+
+func (us *userService) generateCacheKey(search, orderBy, sort string, limit, page int32, deleted bool) string {
+	search = utils.NormalizeString(search)
+	if search == "" {
+		search = "none"
+	}
+	orderBy = strings.TrimSpace(orderBy)
+	if orderBy == "" {
+		orderBy = "user_created_at"
+	}
+	sort = strings.ToLower(strings.TrimSpace(sort))
+	if sort == "" {
+		sort = "desc"
+	}
+	return fmt.Sprintf("users:%s-%s-%s-%d-%d-%v", search, orderBy, sort, limit, page, deleted)
 }
