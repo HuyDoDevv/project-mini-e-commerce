@@ -32,4 +32,8 @@ func RegisterRoutes(r *gin.Engine, routers ...Route) {
 	for _, route := range routers {
 		route.Register(v1api)
 	}
+
+	r.NoRoute(func(c *gin.Context) {
+		c.JSON(404, gin.H{"message": "not found"})
+	})
 }

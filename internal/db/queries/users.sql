@@ -99,3 +99,6 @@ AND user_deleted_at IS NOT NULL;
 
 -- name: GetUserByUUID :one
 SELECT * FROM users WHERE user_uuid = $1;
+
+-- name: GetUserByEmail :one
+SELECT * FROM users WHERE user_email = $1 AND user_deleted_at IS NULL;

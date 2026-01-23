@@ -16,3 +16,8 @@ type UserService interface {
 	RestoreUser(ctx *gin.Context, userUuid uuid.UUID) error
 	TrashUser(ctx *gin.Context, userUuid uuid.UUID) error
 }
+
+type AuthService interface {
+	Login(ctx *gin.Context, email, password string) (string, int, error)
+	Logout(ctx *gin.Context) error
+}

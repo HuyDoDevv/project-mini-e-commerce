@@ -129,7 +129,15 @@ func (ur *QueryUserRepository) Update(ctx context.Context, input sqlc.UpdateUser
 	}
 	return user, nil
 }
-func (ur *QueryUserRepository) FindUserByEmail() {}
+
+func (ur *QueryUserRepository) FindUserByEmail(ctx context.Context, email string) (sqlc.User, error) {
+	user, err := ur.db.GetUserByEmail(ctx, email)
+	if err != nil {
+		return sqlc.User{}, err
+	}
+	return user, nil
+}
+
 func (ur *QueryUserRepository) Delete(ctx context.Context, userUuid uuid.UUID) error {
 	rowsAffected, err := ur.db.DeleteUser(ctx, userUuid)
 	if err != nil {

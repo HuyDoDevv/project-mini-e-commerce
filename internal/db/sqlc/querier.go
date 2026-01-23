@@ -18,6 +18,7 @@ type Querier interface {
 	GetAllUserCreateDESC(ctx context.Context, arg GetAllUserCreateDESCParams) ([]User, error)
 	GetAllUserIdASC(ctx context.Context, arg GetAllUserIdASCParams) ([]User, error)
 	GetAllUserIdDESC(ctx context.Context, arg GetAllUserIdDESCParams) ([]User, error)
+	GetUserByEmail(ctx context.Context, userEmail string) (User, error)
 	GetUserByUUID(ctx context.Context, userUuid uuid.UUID) (User, error)
 	RestoreUser(ctx context.Context, userUuid uuid.UUID) (int64, error)
 	TrashUser(ctx context.Context, userUuid uuid.UUID) (int64, error)

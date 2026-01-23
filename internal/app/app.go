@@ -11,6 +11,7 @@ import (
 	"project-mini-e-commerce/internal/db/sqlc"
 	"project-mini-e-commerce/internal/routes"
 	"project-mini-e-commerce/internal/validation"
+	"project-mini-e-commerce/pkg/auth"
 	"syscall"
 	"time"
 
@@ -56,6 +57,7 @@ func NewApplication(cfg *config.Config) *Application {
 
 func (a *Application) registerModules() {
 	redisClient := config.NewRedisClient()
+	tokenService := auth.NewJWTService()
 
 	ctx := &ModuleContext{
 		DB:    db.DB,
@@ -64,6 +66,7 @@ func (a *Application) registerModules() {
 
 	modules := []Module{
 		NewUserModel(ctx),
+		NewAuthModule(ctx, tokenService),
 	}
 
 	var moduleRoutes []routes.Route
