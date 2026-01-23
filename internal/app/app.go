@@ -74,7 +74,7 @@ func (a *Application) registerModules() {
 		moduleRoutes = append(moduleRoutes, m.Routes())
 	}
 
-	routes.RegisterRoutes(a.router, moduleRoutes...)
+	routes.RegisterRoutes(a.router, tokenService, moduleRoutes...)
 }
 
 func (a *Application) Run() error {
