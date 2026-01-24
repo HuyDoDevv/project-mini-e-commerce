@@ -68,7 +68,7 @@ func (a *Application) registerModules() {
 
 	modules := []Module{
 		NewUserModel(ctx),
-		NewAuthModule(ctx, tokenService),
+		NewAuthModule(ctx, tokenService, cacheRedisService),
 	}
 
 	var moduleRoutes []routes.Route
@@ -76,7 +76,7 @@ func (a *Application) registerModules() {
 		moduleRoutes = append(moduleRoutes, m.Routes())
 	}
 
-	routes.RegisterRoutes(a.router, tokenService, moduleRoutes...)
+	routes.RegisterRoutes(a.router, tokenService, cacheRedisService, moduleRoutes...)
 }
 
 func (a *Application) Run() error {

@@ -4,6 +4,9 @@ import (
 	"project-mini-e-commerce/internal/repository"
 	"project-mini-e-commerce/internal/utils"
 	"project-mini-e-commerce/pkg/auth"
+	"project-mini-e-commerce/pkg/cache"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -13,12 +16,14 @@ import (
 type authService struct {
 	userRepo     repository.UserRepository
 	tokenService auth.TokenService
+	cacheService cache.RedisCacheService
 }
 
-func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService) AuthService {
+func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService) AuthService {
 	return &authService{
 		userRepo:     repo,
 		tokenService: tokenService,
+		cacheService: cacheService,
 	}
 }
 
@@ -49,7 +54,35 @@ func (as *authService) Login(ctx *gin.Context, email, password string) (string, 
 
 	return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
 }
-func (as *authService) Logout(ctx *gin.Context) error {
+func (as *authService) Logout(ctx *gin.Context, refreshToken string) error {
+	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		return utils.NewError("Missing Authorization header", utils.ErrCodeUnauthorized)
+	}
+
+	accessToken := strings.TrimPrefix(authHeader, "Bearer ")
+	_, claims, err := as.tokenService.ParseToken(accessToken)
+	if err != nil {
+		return utils.WrapError(err, "Invalid access token", utils.ErrCodeInternal)
+	}
+
+	if jti, ok := claims["jti"].(string); ok {
+		expUnix, _ := claims["exp"].(float64)
+		exp := time.Unix(int64(expUnix), 0)
+		key := "blacklist:" + jti
+		ttl := time.Until(exp)
+		as.cacheService.Set(key, "revoked", ttl)
+	}
+
+	_, err = as.tokenService.ValidationRefreshToken(refreshToken)
+	if err != nil {
+		return utils.WrapError(err, "Refresh token is invalid or revoked", utils.ErrCodeUnauthorized)
+	}
+
+	if err := as.tokenService.RevokeRefreshToken(refreshToken); err != nil {
+		return utils.WrapError(err, "Cannot revoke refresh token", utils.ErrCodeInternal)
+	}
+
 	return nil
 }
 

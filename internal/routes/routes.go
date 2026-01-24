@@ -5,6 +5,7 @@ import (
 	v1routes "project-mini-e-commerce/internal/routes/v1"
 	"project-mini-e-commerce/internal/utils"
 	"project-mini-e-commerce/pkg/auth"
+	"project-mini-e-commerce/pkg/cache"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,7 @@ type Route interface {
 	Register(r *gin.RouterGroup)
 }
 
-func RegisterRoutes(r *gin.Engine, authService auth.TokenService, routers ...Route) {
+func RegisterRoutes(r *gin.Engine, authService auth.TokenService, cacheService cache.RedisCacheService, routers ...Route) {
 	rateLimiterLogger := utils.NewLoggerWithPath("../../internal/logs/ratelimiter.log", "warning")
 	httpLogger := utils.NewLoggerWithPath("../../internal/logs/http.log", "info")
 	recoveryLogger := utils.NewLoggerWithPath("../../internal/logs/recovery.log", "warning")
@@ -31,7 +32,7 @@ func RegisterRoutes(r *gin.Engine, authService auth.TokenService, routers ...Rou
 
 	v1api := r.Group("api/v1")
 
-	middleware.InitAuthService(authService)
+	middleware.InitAuthService(authService, cacheService)
 	protected := v1api.Group("")
 	protected.Use(middleware.AuthMiddleware())
 
