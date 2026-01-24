@@ -12,6 +12,7 @@ import (
 	"project-mini-e-commerce/internal/routes"
 	"project-mini-e-commerce/internal/validation"
 	"project-mini-e-commerce/pkg/auth"
+	"project-mini-e-commerce/pkg/cache"
 	"syscall"
 	"time"
 
@@ -57,7 +58,8 @@ func NewApplication(cfg *config.Config) *Application {
 
 func (a *Application) registerModules() {
 	redisClient := config.NewRedisClient()
-	tokenService := auth.NewJWTService()
+	cacheRedisService := cache.NewRedisCacheService(redisClient)
+	tokenService := auth.NewJWTService(cacheRedisService)
 
 	ctx := &ModuleContext{
 		DB:    db.DB,
