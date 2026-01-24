@@ -8,11 +8,11 @@ import (
 	v1service "project-mini-e-commerce/internal/service/v1"
 )
 
-type UserModel struct {
+type UserModule struct {
 	routes routes.Route
 }
 
-func NewUserModel(moduleCtx *ModuleContext) *UserModel {
+func NewUserModel(moduleCtx *ModuleContext) *UserModule {
 	userRepo := repository.NewQueryUserRepository(moduleCtx.DB)
 
 	userSer := v1service.NewUserService(userRepo, moduleCtx.Redis)
@@ -21,9 +21,9 @@ func NewUserModel(moduleCtx *ModuleContext) *UserModel {
 
 	userRoutes := v1routes.NewUserRoutes(userHand)
 
-	return &UserModel{routes: userRoutes}
+	return &UserModule{routes: userRoutes}
 }
 
-func (m *UserModel) Routes() routes.Route {
+func (m *UserModule) Routes() routes.Route {
 	return m.routes
 }

@@ -9,19 +9,19 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisCacheService struct {
+type redisCacheService struct {
 	ctx context.Context
 	rdb *redis.Client
 }
 
-func NewRedisCacheService(rdb *redis.Client) *RedisCacheService {
-	return &RedisCacheService{
+func NewRedisCacheService(rdb *redis.Client) RedisCacheService {
+	return &redisCacheService{
 		ctx: context.Background(),
 		rdb: rdb,
 	}
 }
 
-func (rcs *RedisCacheService) Get(key string, dest any) error {
+func (rcs *redisCacheService) Get(key string, dest any) error {
 	data, err := rcs.rdb.Get(rcs.ctx, key).Result()
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (rcs *RedisCacheService) Get(key string, dest any) error {
 	return json.Unmarshal([]byte(data), dest)
 }
 
-func (rcs *RedisCacheService) Set(key string, value any, ttl time.Duration) error {
+func (rcs *redisCacheService) Set(key string, value any, ttl time.Duration) error {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (rcs *RedisCacheService) Set(key string, value any, ttl time.Duration) erro
 	return rcs.rdb.Set(rcs.ctx, key, data, ttl).Err()
 }
 
-func (rcs *RedisCacheService) Clear(patten string) error {
+func (rcs *redisCacheService) Clear(patten string) error {
 	cursor := uint64(0)
 	for {
 		keys, nextCusor, err := rcs.rdb.Scan(rcs.ctx, cursor, patten, 2).Result()
@@ -57,4 +57,12 @@ func (rcs *RedisCacheService) Clear(patten string) error {
 		}
 	}
 	return nil
+}
+func (rcs *redisCacheService) Exists(key string) (bool, error) {
+	count, err := rcs.rdb.Exists(rcs.ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }
