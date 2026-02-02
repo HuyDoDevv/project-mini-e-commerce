@@ -85,20 +85,20 @@ func LoggerMiddleware(httpLogger *zerolog.Logger) gin.HandlerFunc {
 		ctx.Next()
 		duration := time.Since(start)
 
-		responseContenType := ctx.Writer.Header().Get("Content-Type")
+		responseContentType := ctx.Writer.Header().Get("Content-Type")
 		responseBodyRaw := customWriter.body.String()
-		var reponseBodyParse interface{}
+		var responseBodyParse interface{}
 
-		if strings.HasPrefix(responseContenType, "image/") {
-			reponseBodyParse = "[BINARY IMAGE]"
-		} else if strings.HasPrefix(responseContenType, "application/json") ||
-			strings.HasPrefix(responseContenType, "{") ||
-			strings.HasPrefix(responseContenType, "}") {
-			if err := json.Unmarshal([]byte(responseBodyRaw), &reponseBodyParse); err != nil {
-				reponseBodyParse = responseBodyRaw
+		if strings.HasPrefix(responseContentType, "image/") {
+			responseBodyParse = "[BINARY IMAGE]"
+		} else if strings.HasPrefix(responseContentType, "application/json") ||
+			strings.HasPrefix(responseContentType, "{") ||
+			strings.HasPrefix(responseContentType, "}") {
+			if err := json.Unmarshal([]byte(responseBodyRaw), &responseBodyParse); err != nil {
+				responseBodyParse = responseBodyRaw
 			}
 		} else {
-			reponseBodyParse = responseBodyRaw
+			responseBodyParse = responseBodyRaw
 		}
 
 		logEvent := httpLogger.Info()
@@ -118,7 +118,7 @@ func LoggerMiddleware(httpLogger *zerolog.Logger) gin.HandlerFunc {
 			Int64("content_length", ctx.Request.ContentLength).
 			Interface("header", ctx.Request.Header).
 			Interface("request_body", requestBody).
-			Interface("response_body", reponseBodyParse).
+			Interface("response_body", responseBodyParse).
 			Int("status_code", ctx.Writer.Status()).
 			Int64("duration_ms", duration.Milliseconds()).
 			Msg("Logger https")
