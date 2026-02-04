@@ -31,8 +31,8 @@ type RefreshToken struct {
 }
 
 var (
-	jwtSecret     = []byte(utils.GetEnv("JWT_SECRET", "JWT-Secret-Cho-Khoa-Lap-Trinh-Golang-Tu-Hoc-Cua-Huy"))
-	jwtEncryptKey = []byte(utils.GetEnv("JWT_ENCRYPT_KEY", "JWT-Encrypt-Key-Cho-Khoa-Lap-Trinh-Golang-Tu-Hoc-Cua-Huy"))
+	jwtSecret     = []byte(utils.GetEnv("JWT_SECRET", "JWT-Secret-Cho-Khoa-Lap-Tri"))
+	jwtEncryptKey = []byte(utils.GetEnv("JWT_ENCRYPT_KEY", "JWT-Encrypt-Key-Cho-Khoa-Lap-Tri"))
 )
 
 const (
