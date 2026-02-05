@@ -6,3 +6,5 @@ internal/logs
 Makefile
 .idea/
 bin/
+.air.toml
+tmp/

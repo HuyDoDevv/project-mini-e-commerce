@@ -43,26 +43,6 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: golang-api
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
-    volumes:
-      - ./internal/logs:/app/internal/logs
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - app-networks
-
 volumes:
   pgdata:
   redis-data:
