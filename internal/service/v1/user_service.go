@@ -3,11 +3,11 @@ package v1service
 import (
 	"errors"
 	"fmt"
-	"log"
 	"project-mini-e-commerce/internal/db/sqlc"
 	"project-mini-e-commerce/internal/repository"
 	"project-mini-e-commerce/internal/utils"
 	"project-mini-e-commerce/pkg/cache"
+	"project-mini-e-commerce/pkg/logger"
 	"strings"
 	"time"
 
@@ -110,7 +110,7 @@ func (us *userService) CreateUser(ctx *gin.Context, input sqlc.CreateUserParams)
 	}
 
 	if err := us.cache.Clear("users:*"); err != nil {
-		log.Printf("failed to clear cache: %v", err)
+		logger.Logger.Warn().Err(err).Msg("Failed to clear cache after creating user")
 	}
 
 	return user, nil

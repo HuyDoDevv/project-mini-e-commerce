@@ -2,8 +2,8 @@ package config
 
 import (
 	"context"
-	"log"
 	"project-mini-e-commerce/internal/utils"
+	"project-mini-e-commerce/pkg/logger"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -38,9 +38,9 @@ func NewRedisClient() *redis.Client {
 	defer cancel()
 	_, err := client.Ping(ctx).Result()
 	if err != nil {
-		log.Fatalf("Failed to connect to Redis: %v", err)
+		logger.Logger.Fatal().Err(err).Msg("Failed to connect to Redis")
 	}
-	log.Println("✅ Connected Redis")
+	logger.Logger.Info().Msg("✅ Connected to Redis successfully")
 
 	return client
 }

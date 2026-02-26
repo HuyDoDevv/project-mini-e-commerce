@@ -5,6 +5,11 @@ CONN_STRING = postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_
 
 MIGRATION_DIRS = internal/db/migrations
 
+ENV=.env
+PRODUCTION_COMPOSE=docker-compose.production.yml
+DEVELOP_COMPOSE=docker-compose.develop.yml
+LOCALHOST_COMPOSE=docker-compose.localhost.yml
+
 # Import database
 import:
 	docker exec -i mini-ecommerce-db psql -U huydo -d project-mini-ecommerce < ./backupdb-project-mini-ecommerce.sql
@@ -15,7 +20,7 @@ export:
 
 # Run server
 server:
-	cd cmd/api && go run main.go
+	go run ./cmd/api/main.go
 
 sqlc:
 	sqlc generate
@@ -48,4 +53,27 @@ migrate-drop:
 migrate-goto:
 	migrate -path $(MIGRATION_DIRS) -database "$(CONN_STRING)" goto $(VERSION)
 
-.PHONY: importdb exportdb server migrate-create migrate-up migrate-down migrate-force migrate-drop migrate-goto migrate-down-n sqlc
+# Localhost
+localhost:
+	docker compose -f $(LOCALHOST_COMPOSE) down
+	docker compose -f $(LOCALHOST_COMPOSE) --env-file $(ENV) up -d --build
+stop-local:
+	docker compose -f $(LOCALHOST_COMPOSE) down
+logs-local:
+	docker compose -f $(LOCALHOST_COMPOSE) logs -f --tail=100
+
+# Dev
+develop:
+	docker compose -f $(DEVELOP_COMPOSE) down
+	docker compose -f $(DEVELOP_COMPOSE) --env-file $(ENV) up --build
+
+# Production
+production:
+	docker compose -f $(PRODUCTION_COMPOSE) down
+	docker compose -f $(PRODUCTION_COMPOSE) --env-file $(ENV) up -d --build
+stop-prod:
+	docker compose -f $(PRODUCTION_COMPOSE) down
+logs-prod:
+	docker compose -f $(PRODUCTION_COMPOSE) logs -f --tail=100
+
+.PHONY: importdb exportdb server migrate-create migrate-up migrate-down migrate-force migrate-drop migrate-goto migrate-down-n sqlc localhost stop-local logs-local production stop-prod logs-prod develop

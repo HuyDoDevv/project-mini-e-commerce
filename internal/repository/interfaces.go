@@ -18,4 +18,5 @@ type UserRepository interface {
 	Trash(ctx context.Context, userUuid uuid.UUID) error
 	FindUserByEmail(ctx context.Context, email string) (sqlc.User, error)
 	CountAllUsers(ctx context.Context) (int64, error)
+	UpdatePasswordParams(ctx context.Context, input sqlc.UpdatePasswordParams) (sqlc.User, error)
 }

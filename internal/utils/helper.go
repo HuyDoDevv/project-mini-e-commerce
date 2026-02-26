@@ -1,7 +1,11 @@
 package utils
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"log"
 	"os"
+	"path/filepath"
 	"project-mini-e-commerce/internal/common"
 	"project-mini-e-commerce/pkg/logger"
 	"strconv"
@@ -30,7 +34,17 @@ func GetIntEnv(key string, defaultValue int) int {
 	return intValue
 }
 
-func NewLoggerWithPath(path, level string) *zerolog.Logger {
+func GetWorkingDir() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatalln("unable to get working dir: ", err)
+	}
+	return dir
+}
+
+func NewLoggerWithPath(fileName, level string) *zerolog.Logger {
+	path := filepath.Join(GetWorkingDir(), "internal/logs", fileName)
+
 	config := logger.Config{
 		Level:       level,
 		Filename:    path,
@@ -42,4 +56,12 @@ func NewLoggerWithPath(path, level string) *zerolog.Logger {
 	}
 
 	return logger.NewLogger(config)
+}
+
+func GenerateTokenString(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
 }

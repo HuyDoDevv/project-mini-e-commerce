@@ -5,3 +5,6 @@ go.sum
 internal/logs
 Makefile
 .idea/
+bin/
+.air.toml
+tmp/
