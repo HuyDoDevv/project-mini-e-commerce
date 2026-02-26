@@ -20,7 +20,7 @@ export:
 
 # Run server
 server:
-	cd cmd/api && go run main.go
+	go run ./cmd/api/main.go
 
 sqlc:
 	sqlc generate
