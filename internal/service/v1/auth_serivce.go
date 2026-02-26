@@ -5,6 +5,7 @@ import (
 	"project-mini-e-commerce/internal/utils"
 	"project-mini-e-commerce/pkg/auth"
 	"project-mini-e-commerce/pkg/cache"
+	"project-mini-e-commerce/pkg/mail"
 	"strings"
 	"sync"
 	"time"
@@ -19,13 +20,15 @@ type authService struct {
 	userRepo     repository.UserRepository
 	tokenService auth.TokenService
 	cacheService cache.RedisCacheService
+	mailService  mail.EmailProviderService
 }
 
-func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService) AuthService {
+func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService, mailService mail.EmailProviderService) AuthService {
 	return &authService{
 		userRepo:     repo,
 		tokenService: tokenService,
 		cacheService: cacheService,
+		mailService:  mailService,
 	}
 }
 
