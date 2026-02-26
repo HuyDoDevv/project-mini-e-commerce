@@ -17,6 +17,8 @@ type contextKey string
 
 const TraceIDKey contextKey = "trace_ID"
 
+var Logger *zerolog.Logger
+
 type Config struct {
 	Level       string
 	Filename    string
@@ -25,6 +27,10 @@ type Config struct {
 	MaxBackups  int
 	Compress    bool
 	Environment common.Environment
+}
+
+func InitLogger(config Config) {
+	Logger = NewLogger(config)
 }
 
 func NewLogger(config Config) *zerolog.Logger {

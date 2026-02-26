@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"os/signal"
 	"project-mini-e-commerce/internal/config"
@@ -13,6 +12,7 @@ import (
 	"project-mini-e-commerce/internal/validation"
 	"project-mini-e-commerce/pkg/auth"
 	"project-mini-e-commerce/pkg/cache"
+	"project-mini-e-commerce/pkg/logger"
 	"syscall"
 	"time"
 
@@ -36,12 +36,12 @@ type ModuleContext struct {
 
 func NewApplication(cfg *config.Config) *Application {
 	if err := validation.InitValidator(); err != nil {
-		log.Fatalf("Failed to initialize validator: %v", err)
+		logger.Logger.Fatal().Err(err).Msg("Failed to initialize validator")
 	}
 	r := gin.New()
 
 	if err := db.InitDB(); err != nil {
-		log.Fatalf("Failed to initialize DB: %v", err)
+		logger.Logger.Fatal().Err(err).Msg("Failed to initialize DB")
 	}
 
 	app := &Application{
@@ -92,16 +92,16 @@ func (a *Application) Run() error {
 	defer stop()
 
 	go func() {
-		log.Printf("server started on %s\n", srv.Addr)
+		logger.Logger.Info().Msgf("Server started on %s", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil &&
 			!errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("listen: %s\n", err)
+			logger.Logger.Fatal().Err(err).Msg("Server failed to start")
 		}
 	}()
 
 	<-ctx.Done()
 
-	log.Println("shutting down server...")
+	logger.Logger.Info().Msg("Shutting down server...")
 
 	srv.SetKeepAlivesEnabled(false)
 

@@ -3,10 +3,10 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
 	"project-mini-e-commerce/internal/config"
 	"project-mini-e-commerce/internal/db/sqlc"
 	"project-mini-e-commerce/internal/utils"
+	"project-mini-e-commerce/pkg/logger"
 	"project-mini-e-commerce/pkg/pgx"
 	"time"
 
@@ -24,7 +24,7 @@ func InitDB() error {
 		return fmt.Errorf("error parsing DB config: %v", err)
 	}
 
-	sqlLogger := utils.NewLoggerWithPath("../../internal/logs/slq.log", "warning")
+	sqlLogger := utils.NewLoggerWithPath("internal/logs/slq.log", "warning")
 	conf.ConnConfig.Tracer = &tracelog.TraceLog{
 		Logger: &pgx.ZerlogTrace{
 			Logger:         *sqlLogger,
@@ -53,7 +53,7 @@ func InitDB() error {
 		return fmt.Errorf("db ping error: %v", err)
 	}
 
-	log.Println("✅ Connected DB")
+	logger.Logger.Info().Msg("✅ Connected to DB successfully")
 
 	return nil
 }

@@ -32,12 +32,16 @@ func GetIntEnv(key string, defaultValue int) int {
 	return intValue
 }
 
-func NewLoggerWithPath(fileName, level string) *zerolog.Logger {
-	cwd, err := os.Getwd()
+func GetWorkingDir() string {
+	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatalln("unable to get working dir: ", err)
 	}
-	path := filepath.Join(cwd, "internal/logs", fileName)
+	return dir
+}
+
+func NewLoggerWithPath(fileName, level string) *zerolog.Logger {
+	path := filepath.Join(GetWorkingDir(), "internal/logs", fileName)
 
 	config := logger.Config{
 		Level:       level,
