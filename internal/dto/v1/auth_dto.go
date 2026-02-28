@@ -9,6 +9,15 @@ type RefreshTokenInput struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
+type ForgotPasswordInput struct {
+	Email string `json:"email" binding:"required,email,email_advanced"`
+}
+
+type ResetPasswordInput struct {
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=8"`
+}
+
 type TokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`

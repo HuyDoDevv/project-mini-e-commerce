@@ -184,3 +184,11 @@ func (ur *QueryUserRepository) FindUUID(ctx context.Context, userUuid uuid.UUID)
 	}
 	return user, nil
 }
+
+func (ur *QueryUserRepository) UpdatePasswordParams(ctx context.Context, input sqlc.UpdatePasswordParams) (sqlc.User, error) {
+	user, err := ur.db.UpdatePassword(ctx, input)
+	if err != nil {
+		return sqlc.User{}, err
+	}
+	return user, nil
+}
