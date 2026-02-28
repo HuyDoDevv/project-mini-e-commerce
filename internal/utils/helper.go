@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"log"
 	"os"
 	"path/filepath"
@@ -54,4 +56,12 @@ func NewLoggerWithPath(fileName, level string) *zerolog.Logger {
 	}
 
 	return logger.NewLogger(config)
+}
+
+func GenerateTokenString(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
 }

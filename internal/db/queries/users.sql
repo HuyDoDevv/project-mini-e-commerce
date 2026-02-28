@@ -102,3 +102,11 @@ SELECT * FROM users WHERE user_uuid = $1;
 
 -- name: GetUserByEmail :one
 SELECT * FROM users WHERE user_email = $1 AND user_deleted_at IS NULL;
+
+-- name: UpdatePassword :one
+UPDATE users
+SET user_password = sqlc.arg(user_password)
+WHERE
+    user_uuid = sqlc.arg(user_uuid)::uuid
+    AND user_deleted_at IS NULL
+RETURNING *;

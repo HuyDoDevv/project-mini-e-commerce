@@ -22,6 +22,7 @@ type Querier interface {
 	GetUserByUUID(ctx context.Context, userUuid uuid.UUID) (User, error)
 	RestoreUser(ctx context.Context, userUuid uuid.UUID) (int64, error)
 	TrashUser(ctx context.Context, userUuid uuid.UUID) (int64, error)
+	UpdatePassword(ctx context.Context, arg UpdatePasswordParams) (User, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
