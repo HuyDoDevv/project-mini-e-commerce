@@ -11,7 +11,7 @@ import (
 )
 
 type Email struct {
-	Form     Address   `json:"form"`
+	From     Address   `json:"from"`
 	To       []Address `json:"to"`
 	Subject  string    `json:"subject"`
 	Text     string    `json:"text"`
@@ -24,59 +24,73 @@ type Address struct {
 }
 
 type MailConfig struct {
-	ProviderConfigs map[string]any
-	ProviderType    ProviderType
-	MaxRetry        int
-	Timeout         time.Duration
-	Logger          *zerolog.Logger
+	ProviderConfig map[string]any
+	ProviderType   ProviderType
+	MaxRetries     int
+	Timeout        time.Duration
+	Logger         *zerolog.Logger
 }
-
 type MailService struct {
 	config   *MailConfig
 	provider EmailProviderService
 	logger   *zerolog.Logger
 }
 
-func NewMailService(config *config.Config, logger *zerolog.Logger, providerFactory ProviderFactory) (EmailProviderService, error) {
-	cfg := &MailConfig{
-		ProviderConfigs: config.MailProviderConfig,
-		ProviderType:    ProviderType(config.MailProviderType),
-		MaxRetry:        3,
-		Timeout:         10 * time.Second,
-		Logger:          logger,
+func NewMailService(cfg *config.Config, logger *zerolog.Logger, providerFactory ProviderFactory) (EmailProviderService, error) {
+	config := &MailConfig{
+		ProviderConfig: cfg.MailProviderConfig,
+		ProviderType:   ProviderType(cfg.MailProviderType),
+		MaxRetries:     3,
+		Timeout:        10 * time.Second,
+		Logger:         logger,
 	}
 
-	provider, err := providerFactory.CreateProvider(cfg)
+	provider, err := providerFactory.CreateProvider(config)
 	if err != nil {
-		return nil, utils.WrapError(err, "Failed to create email provider", utils.ErrCodeInternal)
+		return nil, utils.WrapError(err, "Failed to create provider", utils.ErrCodeInternal)
 	}
 
 	return &MailService{
-		config:   cfg,
+		config:   config,
 		provider: provider,
 		logger:   logger,
 	}, nil
 }
 
-func (s *MailService) SendEmail(ctx context.Context, email *Email) error {
-	traceId := logger.GetTraceId(ctx)
-	startTime := time.Now()
-
+func (ms *MailService) SendMail(ctx context.Context, email *Email) error {
+	traceID := logger.GetTraceId(ctx)
+	start_time := time.Now()
 	var lastErr error
-	for attempt := 1; attempt <= s.config.MaxRetry; attempt++ {
-		startAttemptTime := time.Now()
-		err := s.provider.SendEmail(ctx, email)
-
+	for attempt := 1; attempt <= ms.config.MaxRetries; attempt++ {
+		startAttempt := time.Now()
+		err := ms.provider.SendMail(ctx, email)
 		if err == nil {
-			s.logger.Error().Str("trace_id", traceId).Dur("duration", time.Since(startAttemptTime)).Str("operation", "send_email").Interface("to", email.To).Str("subject", email.Subject).Str("category", email.Category).Msg("Email sent successfully")
+			ms.logger.Info().Str("trace_id", traceID).
+				Dur("duration", time.Since(startAttempt)).
+				Str("operation", "send_mail").
+				Interface("to", email.To).
+				Str("subject", email.Subject).
+				Str("category", email.Category).
+				Msg("Email send successfully")
 			return nil
 		}
 
 		lastErr = err
-		s.logger.Warn().Err(err).Str("trace_id", traceId).Dur("duration", time.Since(startAttemptTime)).Int("attempt", attempt).Msg("Failed to send email, retrying...")
+		ms.logger.Warn().Str("trace_id", traceID).
+			Dur("duration", time.Since(startAttempt)).
+			Str("operation", "send_mail").
+			Int("attempt", attempt).
+			Err(err).
+			Msg("Failed to send email, retrying")
 		time.Sleep(time.Duration(attempt) * time.Second)
 	}
 
-	s.logger.Error().Str("trace_id", traceId).Err(lastErr).Dur("duration", time.Since(startTime)).Int("attempts", s.config.MaxRetry).Msg("Failed to send email after retries")
-	return utils.WrapError(lastErr, "Failed to send email after retries", utils.ErrCodeInternal)
+	ms.logger.Error().Str("trace_id", traceID).
+		Dur("duration", time.Since(start_time)).
+		Str("operation", "send_mail").
+		Int("attempt", ms.config.MaxRetries).
+		Err(lastErr).
+		Msg("Failed to send email after all retryies")
+
+	return utils.WrapError(lastErr, "Failed to send email after all retryies", utils.ErrCodeInternal)
 }

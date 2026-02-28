@@ -15,17 +15,18 @@ type ProviderFactory interface {
 	CreateProvider(config *MailConfig) (EmailProviderService, error)
 }
 
-type MailtrapProviderFactory struct{}
+type MailTrapProviderFactory struct {
+}
 
-func (f *MailtrapProviderFactory) CreateProvider(config *MailConfig) (EmailProviderService, error) {
-	return NewMailtrapProvider(config)
+func (f *MailTrapProviderFactory) CreateProvider(config *MailConfig) (EmailProviderService, error) {
+	return NewMailTrapProvider(config)
 }
 
 func NewProviderFactory(providerType ProviderType) (ProviderFactory, error) {
 	switch providerType {
 	case ProviderMailtrap:
-		return &MailtrapProviderFactory{}, nil
+		return &MailTrapProviderFactory{}, nil
 	default:
-		return nil, utils.NewError(fmt.Sprintf("Unsupported provider type %s:", utils.ErrorCode(providerType)), utils.ErrCodeInternal)
+		return nil, utils.NewError(fmt.Sprintf("Unsuported provider type: %s", utils.ErrorCode(providerType)), utils.ErrCodeInternal)
 	}
 }

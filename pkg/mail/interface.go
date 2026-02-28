@@ -3,5 +3,5 @@ package mail
 import "context"
 
 type EmailProviderService interface {
-	SendEmail(ctx context.Context, email *Email) error
+	SendMail(ctx context.Context, email *Email) error
 }

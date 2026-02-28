@@ -240,7 +240,7 @@ func (as *authService) ForgotPassword(ctx *gin.Context, email string) error {
 		Subject: "Password Reset Request",
 		Text:    fmt.Sprintf("Hi %s,\n\nYou requested a password reset. Click the link below to reset your password:\n\n%s\n\nIf you didn't request this, please ignore this email.", user.UserName, resetLink),
 	}
-	err = as.mailService.SendEmail(context, mailContent)
+	err = as.mailService.SendMail(context, mailContent)
 	if err != nil {
 		return utils.WrapError(err, "Failed to send reset password email", utils.ErrCodeInternal)
 	}

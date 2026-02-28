@@ -28,9 +28,9 @@ func NewConfig() *Config {
 	if mailProviderType == "mailtrap" {
 		mailtrapConfig := map[string]any{
 			"mail_sender":      utils.GetEnv("MAILTRAP_MAIL_SENDER", "admin@admin.com.vn"),
-			"mail_sender_name": utils.GetEnv("MAILTRAP_MAIL_SENDER_NAME", "Admin"),
-			"api_key":          utils.GetEnv("MAILTRAP_API_KEY", "f10809b7f6c12394e1f51fc874a21bc0"),
-			"url":              utils.GetEnv("MAILTRAP_URL", "https://sandbox.api.mailtrap.io/api/send/4418837"),
+			"name_sender":      utils.GetEnv("MAILTRAP_MAIL_SENDER_NAME", "Admin"),
+			"mailtrap_api_key": utils.GetEnv("MAILTRAP_API_KEY", "f10809b7f6c12394e1f51fc874a21bc0"),
+			"mailtrap_url":     utils.GetEnv("MAILTRAP_URL", "https://sandbox.api.mailtrap.io/api/send/4418837"),
 		}
 		mailProviderConfig[mailProviderType] = mailtrapConfig
 	}
