@@ -30,6 +30,7 @@ func LoggerMiddleware(httpLogger *zerolog.Logger) gin.HandlerFunc {
 		contentType := ctx.GetHeader("Content-Type")
 		requestBody := make(map[string]any)
 		var formFiles []map[string]any
+		var sensitiveFields = []string{"password", "pass", "new_password", "token"}
 
 		if strings.HasPrefix(contentType, "multipart/form-data") {
 			if err := ctx.Request.ParseMultipartForm(32 << 20); err == nil && ctx.Request.MultipartForm != nil {
@@ -117,7 +118,7 @@ func LoggerMiddleware(httpLogger *zerolog.Logger) gin.HandlerFunc {
 			Str("request_uri", ctx.Request.RequestURI).
 			Int64("content_length", ctx.Request.ContentLength).
 			Interface("header", ctx.Request.Header).
-			Interface("request_body", requestBody).
+			Interface("request_body", sensitiveRequestBody(requestBody, sensitiveFields)).
 			Interface("response_body", responseBodyParse).
 			Int("status_code", ctx.Writer.Status()).
 			Int64("duration_ms", duration.Milliseconds()).
@@ -134,4 +135,36 @@ func formatFileSize(size int64) string {
 	default:
 		return fmt.Sprintf("%d B", size)
 	}
+}
+
+func sensitiveRequestBody(requestBody map[string]any, sensitiveFields []string) map[string]any {
+	maskedBody := make(map[string]any)
+	for key, value := range requestBody {
+		if contains(sensitiveFields, key) {
+			maskedBody[key] = "****"
+		} else {
+			switch v := value.(type) {
+			case map[string]any:
+				maskedBody[key] = sensitiveRequestBody(v, sensitiveFields)
+			case []map[string]any:
+				var maskedList []map[string]any
+				for _, item := range v {
+					maskedList = append(maskedList, sensitiveRequestBody(item, sensitiveFields))
+				}
+				maskedBody[key] = maskedList
+			default:
+				maskedBody[key] = value
+			}
+		}
+	}
+	return maskedBody
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
