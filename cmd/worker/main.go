@@ -2,7 +2,6 @@ package main
 
 import (
 	"path/filepath"
-	"project-mini-e-commerce/internal/app"
 	"project-mini-e-commerce/internal/common"
 	"project-mini-e-commerce/internal/config"
 	"project-mini-e-commerce/internal/utils"
@@ -10,6 +9,9 @@ import (
 
 	"github.com/joho/godotenv"
 )
+
+func NewWorker(cfg *config.Config) {
+}
 
 func main() {
 	rootDir := utils.GetWorkingDir()
@@ -27,15 +29,9 @@ func main() {
 	if err := godotenv.Load(filepath.Join(rootDir, ".env")); err != nil {
 		logger.Logger.Warn().Msg("No .env file found")
 	} else {
-		logger.Logger.Info().Msg(".env file loaded successfully in api")
+		logger.Logger.Info().Msg(".env file loaded successfully in worker")
 	}
 	configFile := config.NewConfig()
-	application, err := app.NewApplication(configFile)
-	if err != nil {
-		logger.Logger.Fatal().Err(err).Msg("Failed to create application")
-	}
 
-	if err := application.Run(); err != nil {
-		logger.Logger.Fatal().Err(err).Msg("Failed to run application")
-	}
+	NewWorker(configFile)
 }

@@ -36,9 +36,10 @@ type ModuleContext struct {
 	Redis *redis.Client
 }
 
-func NewApplication(cfg *config.Config) *Application {
+func NewApplication(cfg *config.Config) (*Application, error) {
 	if err := validation.InitValidator(); err != nil {
 		logger.Logger.Fatal().Err(err).Msg("Failed to initialize validator")
+		return nil, err
 	}
 	r := gin.New()
 
@@ -53,7 +54,7 @@ func NewApplication(cfg *config.Config) *Application {
 
 	app.registerModules()
 
-	return app
+	return app, nil
 }
 
 func (a *Application) registerModules() {
