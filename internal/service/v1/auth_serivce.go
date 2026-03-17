@@ -8,6 +8,7 @@ import (
 	"project-mini-e-commerce/pkg/auth"
 	"project-mini-e-commerce/pkg/cache"
 	"project-mini-e-commerce/pkg/logger"
+	"project-mini-e-commerce/pkg/mail"
 	"strings"
 	"sync"
 	"time"
@@ -23,13 +24,15 @@ type authService struct {
 	userRepo     repository.UserRepository
 	tokenService auth.TokenService
 	cacheService cache.RedisCacheService
+	mailService  mail.EmailProviderService
 }
 
-func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService) AuthService {
+func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService, mailService mail.EmailProviderService) AuthService {
 	return &authService{
 		userRepo:     repo,
 		tokenService: tokenService,
 		cacheService: cacheService,
+		mailService:  mailService,
 	}
 }
 
@@ -228,8 +231,19 @@ func (as *authService) ForgotPassword(ctx *gin.Context, email string) error {
 	}
 
 	resetLink := fmt.Sprintf("https://your-frontend-url/reset-password?token=%s", token)
-
-	logger.Logger.Info().Msg(resetLink)
+	mailContent := &mail.Email{
+		To: []mail.Address{
+			{
+				Email: email,
+			},
+		},
+		Subject: "Password Reset Request",
+		Text:    fmt.Sprintf("Hi %s,\n\nYou requested a password reset. Click the link below to reset your password:\n\n%s\n\nIf you didn't request this, please ignore this email.", user.UserName, resetLink),
+	}
+	err = as.mailService.SendMail(context, mailContent)
+	if err != nil {
+		return utils.WrapError(err, "Failed to send reset password email", utils.ErrCodeInternal)
+	}
 
 	return nil
 }

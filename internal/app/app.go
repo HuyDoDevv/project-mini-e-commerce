@@ -9,10 +9,12 @@ import (
 	"project-mini-e-commerce/internal/db"
 	"project-mini-e-commerce/internal/db/sqlc"
 	"project-mini-e-commerce/internal/routes"
+	"project-mini-e-commerce/internal/utils"
 	"project-mini-e-commerce/internal/validation"
 	"project-mini-e-commerce/pkg/auth"
 	"project-mini-e-commerce/pkg/cache"
 	"project-mini-e-commerce/pkg/logger"
+	"project-mini-e-commerce/pkg/mail"
 	"syscall"
 	"time"
 
@@ -58,6 +60,16 @@ func (a *Application) registerModules() {
 	redisClient := config.NewRedisClient()
 	cacheRedisService := cache.NewRedisCacheService(redisClient)
 	tokenService := auth.NewJWTService(cacheRedisService)
+	mailLogger := utils.NewLoggerWithPath("mail.log", "info")
+	factory, err := mail.NewProviderFactory(mail.ProviderMailtrap)
+	if err != nil {
+		logger.Logger.Fatal().Err(err).Msg("Failed to create mail provider factory")
+	}
+
+	mailService, err := mail.NewMailService(a.config, mailLogger, factory)
+	if err != nil {
+		logger.Logger.Fatal().Err(err).Msg("Failed to create mail service")
+	}
 
 	ctx := &ModuleContext{
 		DB:    db.DB,
@@ -66,7 +78,7 @@ func (a *Application) registerModules() {
 
 	modules := []Module{
 		NewUserModel(ctx),
-		NewAuthModule(ctx, tokenService, cacheRedisService),
+		NewAuthModule(ctx, tokenService, cacheRedisService, mailService),
 	}
 
 	var moduleRoutes []routes.Route

@@ -8,16 +8,17 @@ import (
 	v1service "project-mini-e-commerce/internal/service/v1"
 	"project-mini-e-commerce/pkg/auth"
 	"project-mini-e-commerce/pkg/cache"
+	"project-mini-e-commerce/pkg/mail"
 )
 
 type AuthModule struct {
 	routes routes.Route
 }
 
-func NewAuthModule(moduleCtx *ModuleContext, tokenService auth.TokenService, cacheService cache.RedisCacheService) *AuthModule {
+func NewAuthModule(moduleCtx *ModuleContext, tokenService auth.TokenService, cacheService cache.RedisCacheService, mailService mail.EmailProviderService) *AuthModule {
 	userRepo := repository.NewQueryUserRepository(moduleCtx.DB)
 
-	authSer := v1service.NewAuthService(userRepo, tokenService, cacheService)
+	authSer := v1service.NewAuthService(userRepo, tokenService, cacheService, mailService)
 
 	authHand := v1handler.NewAuthHandler(authSer)
 
