@@ -9,6 +9,7 @@ import (
 	"project-mini-e-commerce/pkg/cache"
 	"project-mini-e-commerce/pkg/logger"
 	"project-mini-e-commerce/pkg/mail"
+	"project-mini-e-commerce/pkg/rabbitmq"
 	"strings"
 	"sync"
 	"time"
@@ -25,14 +26,16 @@ type authService struct {
 	tokenService auth.TokenService
 	cacheService cache.RedisCacheService
 	mailService  mail.EmailProviderService
+	rabbitmq     rabbitmq.RabbitMQService
 }
 
-func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService, mailService mail.EmailProviderService) AuthService {
+func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cacheService cache.RedisCacheService, mailService mail.EmailProviderService, rabbitmqService rabbitmq.RabbitMQService) AuthService {
 	return &authService{
 		userRepo:     repo,
 		tokenService: tokenService,
 		cacheService: cacheService,
 		mailService:  mailService,
+		rabbitmq:     rabbitmqService,
 	}
 }
 
@@ -240,9 +243,9 @@ func (as *authService) ForgotPassword(ctx *gin.Context, email string) error {
 		Subject: "Password Reset Request",
 		Text:    fmt.Sprintf("Hi %s,\n\nYou requested a password reset. Click the link below to reset your password:\n\n%s\n\nIf you didn't request this, please ignore this email.", user.UserName, resetLink),
 	}
-	err = as.mailService.SendMail(context, mailContent)
-	if err != nil {
-		return utils.WrapError(err, "Failed to send reset password email", utils.ErrCodeInternal)
+
+	if err := as.rabbitmq.Publish(context, "email_queue", mailContent); err != nil {
+		return utils.WrapError(err, "Failed to publish email to queue", utils.ErrCodeInternal)
 	}
 
 	return nil
