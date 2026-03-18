@@ -24,19 +24,18 @@ func main() {
 		Environment: common.Environment(utils.GetEnv("APP_ENV", "development")),
 	})
 
-	loadEnv(filepath.Join(rootDir, ".env"))
-	configFile := config.NewConfig()
-	application := app.NewApplication(configFile)
-
-	if err := application.Run(); err != nil {
-		panic(err)
-	}
-}
-
-func loadEnv(path string) {
-	if err := godotenv.Load(path); err != nil {
+	if err := godotenv.Load(filepath.Join(rootDir, ".env")); err != nil {
 		logger.Logger.Warn().Msg("No .env file found")
 	} else {
-		logger.Logger.Info().Msg(".env file loaded successfully")
+		logger.Logger.Info().Msg(".env file loaded successfully in api")
+	}
+	configFile := config.NewConfig()
+	application, err := app.NewApplication(configFile)
+	if err != nil {
+		logger.Logger.Fatal().Err(err).Msg("Failed to create application")
+	}
+
+	if err := application.Run(); err != nil {
+		logger.Logger.Fatal().Err(err).Msg("Failed to run application")
 	}
 }

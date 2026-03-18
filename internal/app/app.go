@@ -15,6 +15,7 @@ import (
 	"project-mini-e-commerce/pkg/cache"
 	"project-mini-e-commerce/pkg/logger"
 	"project-mini-e-commerce/pkg/mail"
+	"project-mini-e-commerce/pkg/rabbitmq"
 	"syscall"
 	"time"
 
@@ -36,9 +37,10 @@ type ModuleContext struct {
 	Redis *redis.Client
 }
 
-func NewApplication(cfg *config.Config) *Application {
+func NewApplication(cfg *config.Config) (*Application, error) {
 	if err := validation.InitValidator(); err != nil {
 		logger.Logger.Fatal().Err(err).Msg("Failed to initialize validator")
+		return nil, err
 	}
 	r := gin.New()
 
@@ -53,7 +55,7 @@ func NewApplication(cfg *config.Config) *Application {
 
 	app.registerModules()
 
-	return app
+	return app, nil
 }
 
 func (a *Application) registerModules() {
@@ -64,11 +66,20 @@ func (a *Application) registerModules() {
 	factory, err := mail.NewProviderFactory(mail.ProviderMailtrap)
 	if err != nil {
 		logger.Logger.Fatal().Err(err).Msg("Failed to create mail provider factory")
+		return
 	}
 
 	mailService, err := mail.NewMailService(a.config, mailLogger, factory)
 	if err != nil {
 		logger.Logger.Fatal().Err(err).Msg("Failed to create mail service")
+		return
+	}
+
+	rabbitmqLogger := utils.NewLoggerWithPath("rabbitmq.log", "info")
+	rabbitmqService, err := rabbitmq.NewRabbitMQService(utils.GetEnv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/"), rabbitmqLogger)
+	if err != nil {
+		logger.Logger.Fatal().Err(err).Msg("Failed to create RabbitMQ service")
+		return
 	}
 
 	ctx := &ModuleContext{
@@ -78,7 +89,7 @@ func (a *Application) registerModules() {
 
 	modules := []Module{
 		NewUserModel(ctx),
-		NewAuthModule(ctx, tokenService, cacheRedisService, mailService),
+		NewAuthModule(ctx, tokenService, cacheRedisService, mailService, rabbitmqService),
 	}
 
 	var moduleRoutes []routes.Route
